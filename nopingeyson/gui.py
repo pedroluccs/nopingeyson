@@ -237,6 +237,10 @@ class Api:
             save_config(self.engine.cfg)
         return res
 
+    def open_logs(self):
+        os.startfile(os.path.dirname(self.engine.log_path))
+        return "ok"
+
     def relaunch_admin(self):
         args = sys.argv[1:] if getattr(sys, "frozen", False) else ['-m', 'nopingeyson'] + sys.argv[1:]
         ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(args), os.getcwd(), 1)

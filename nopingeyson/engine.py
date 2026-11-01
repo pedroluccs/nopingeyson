@@ -119,6 +119,24 @@ class LogBuffer(logging.Handler):
                            "msg": record.getMessage()})
 
 
+def _is_admin() -> bool:
+    from .booster import is_admin
+    return is_admin()
+
+
+def _file_logging(root: logging.Logger) -> str:
+    """Log em %APPDATA%\\NoPingeyson\\logs\\nopingeyson.log (até 3 arquivos de 1 MB)."""
+    from logging.handlers import RotatingFileHandler
+    folder = os.path.join(app_dir(), "logs")
+    os.makedirs(folder, exist_ok=True)
+    path = os.path.join(folder, "nopingeyson.log")
+    if not any(isinstance(h, RotatingFileHandler) for h in root.handlers):
+        h = RotatingFileHandler(path, maxBytes=1_000_000, backupCount=3, encoding="utf-8")
+        h.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s"))
+        root.addHandler(h)
+    return path
+
+
 class Engine:
     def __init__(self, cfg: dict):
         self.cfg = cfg
@@ -144,7 +162,38 @@ class Engine:
         root = logging.getLogger("nopingeyson")
         root.addHandler(self.logs)
         root.setLevel(logging.INFO)
+        self.log_path = _file_logging(root)
+        log.info("NoPingeyson aberto (admin=%s, servidores=%d)", _is_admin(), len(relays_of(cfg)[0]))
         threading.Thread(target=self._watch_games, name="nopingeyson-watch", daemon=True).start()
+        threading.Thread(target=self._heartbeat, name="nopingeyson-status", daemon=True).start()
+
+    def _heartbeat(self):
+        """A cada 30 s grava no log o que está acontecendo de fato (prova de funcionamento)."""
+        while True:
+            time.sleep(30)
+            if not self.running:
+                continue
+            try:
+                s = self.snapshot()
+                if s.get("local_only"):
+                    log.info("STATUS ligado SEM servidores: jogos seguem pela rota normal (ping não muda)")
+                    continue
+                cap = s.get("capture") or {}
+                log.info("STATUS captura: %s pacotes do jogo desviados, %s respostas devolvidas ao jogo",
+                         cap.get("captured", 0), cap.get("injected", 0))
+                for p in s.get("paths", []):
+                    log.info("STATUS caminho %s: %s ms, perda %s%%, %s", p["label"], p["rtt"], p["loss"],
+                             "ativo" if p["alive"] else "fora do ar")
+                for t in s.get("targets", []):
+                    if t["active"]:
+                        log.info("STATUS jogo %s servidor %s: %s, rota %s ms x direto %s ms, "
+                                 "enviados %s, recebidos %s, salvos pelo multipath %s",
+                                 t.get("game"), t["ip"], t["mode"], t["score"], t["direct"],
+                                 t["up"], t["down"], t["recovered"])
+                if s.get("shaper"):
+                    log.info("STATUS limitador: %s", s["shaper"])
+            except Exception as e:
+                log.debug("heartbeat: %s", e)
 
     def notify(self, msg: str, kind: str = "info"):
         self.notifications.appendleft({"t": time.time(), "msg": msg, "kind": kind})
@@ -167,7 +216,8 @@ class Engine:
         while True:
             time.sleep(3)
             try:
-                lib = self.cfg.get("_detected") or []
+                lib = (self.cfg.get("_detected") or []) + [
+                    dict(g, category=g.get("category", "Jogos")) for g in self.cfg.get("custom_games") or []]
                 if not lib:
                     continue
                 exe_to_id = {exe: g["id"] for g in lib for exe in g["exes"]}
