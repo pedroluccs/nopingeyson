@@ -35,6 +35,7 @@ def _print_status(snap: dict):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="nopingeyson", description="NoPingeyson: otimizador de rotas para jogos")
+    ap.add_argument("--minimizado", action="store_true", help="abre direto na bandeja")
     ap.add_argument("-c", "--config", help="arquivo de configuração (padrão: ./config.json ou %%APPDATA%%\\NoPingeyson)")
     sub = ap.add_subparsers(dest="cmd")
     sub.add_parser("gui")
@@ -82,7 +83,7 @@ def main(argv=None):
     cfg = load_config(args.config)
     if args.cmd in (None, "gui"):
         from .gui import run_gui
-        return run_gui(cfg)
+        return run_gui(cfg, minimized=args.minimizado)
 
     eng = Engine(cfg)
     res = eng.start(measure_only=(args.cmd == "medir"))

@@ -72,6 +72,31 @@ Baixe o **NoPingeyson-Setup-x.y.z-x64.exe** na aba
 instalador (cria atalhos e desinstalador; ao desinstalar, o FPS Boost é desfeito).
 O programa pede permissão de Administrador ao abrir.
 
+## Pronto para usar (v0.3)
+
+* **Detecta sozinho** os jogos e apps instalados (Steam, Epic, Riot, Battle.net,
+  Ubisoft, EA e registro do Windows) e mostra o **ícone de verdade** de cada um
+  (ícone do .exe ou capa da Steam, extraídos no seu PC).
+* **Otimização inteligente:** quando um jogo abre, ele entra em Conexões e é
+  otimizado sem você clicar em nada.
+* Telas: Início, Conexões, Biblioteca (categorias e índice A–Z), Servidores,
+  Analisador de rede (tempo real, rastreio de rota, ping para regiões,
+  velocidade), PC Boost (presets, Limpeza de RAM, DNS Optimizer), Multi
+  Internet, Limitador de tráfego, Configurações (iniciar com o Windows, bandeja).
+
+### Servidores embutidos
+
+A redução de ping precisa de servidores (relays) perto do servidor do jogo. Para
+o usuário final não configurar nada, o dono do projeto coloca os servidores em
+`nopingeyson/servers.json` **antes de gerar o instalador**:
+
+```json
+{"key": "CHAVE_HEX", "servers": [{"name": "SP-1", "region": "São Paulo", "host": "203.0.113.10", "port": 7000}]}
+```
+
+Sem servidores, o NoPingeyson funciona normalmente (PC Boost, limitador,
+analisador, DNS, RAM), mas o ping do jogo não muda: o jogo segue pela rota normal.
+
 ## Anti-cheat: o que esperar
 
 O NoPingeyson foi feito para **não mexer no jogo**: não lê nem escreve na memória

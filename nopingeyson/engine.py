@@ -33,7 +33,8 @@ DEFAULT_CONFIG = {
     "key": "",
     "relays": [],                 # {"name", "host", "port", "region"}
     "game_settings": {},          # id do jogo -> DEFAULT_GAME
-    "active_games": [],           # jogos com "Aplicar rotas" ligado
+    "connections": [],            # jogos na tela Conexões (ligados ou não)
+    "active_games": [],           # jogos com a otimização ligada
     "custom_games": [],           # jogos pedidos pelo usuário
     "favorites": [],
     "two_hop": True,
@@ -43,7 +44,28 @@ DEFAULT_CONFIG = {
     "auto_boost": [],
     "multi_internet": {"enabled": False, "interfaces": []},
     "shaper": {"enabled": False, "download_kbps": 0, "upload_kbps": 0, "exceptions": []},
+    "enabled": True,              # botão ON/OFF do topo
+    "settings": {
+        "smart": True,            # otimização inteligente: liga sozinho quando o jogo abre
+        "dual_routes": True,      # rotas duplas (multipath) por padrão
+        "startup": False,
+        "tray": True,             # fechar a janela manda para a bandeja
+        "notifications": True,
+    },
 }
+
+# Servidores que já vêm no instalador (o dono do projeto preenche servers.json
+# antes de gerar o build; o usuário final não configura nada).
+BUILTIN_SERVERS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "servers.json")
+
+
+def builtin_servers() -> dict:
+    try:
+        with open(BUILTIN_SERVERS, encoding="utf-8") as f:
+            data = json.load(f)
+        return {"key": data.get("key", ""), "servers": data.get("servers", [])}
+    except (OSError, ValueError):
+        return {"key": "", "servers": []}
 
 
 def config_path() -> str:
@@ -56,11 +78,26 @@ def load_config(path: str | None = None) -> dict:
     cfg = json.loads(json.dumps(DEFAULT_CONFIG))
     try:
         with open(path, encoding="utf-8") as f:
-            cfg.update(json.load(f))
+            saved = json.load(f)
+        settings = dict(cfg["settings"], **saved.pop("settings", {}))
+        cfg.update(saved)
+        cfg["settings"] = settings
     except FileNotFoundError:
         pass
+    if not cfg.get("relays"):
+        b = builtin_servers()
+        cfg["_builtin"] = bool(b["servers"])
+        if b["servers"]:
+            cfg["_relays"], cfg["_key"] = b["servers"], b["key"]
     cfg["_path"] = path
     return cfg
+
+
+def relays_of(cfg: dict) -> tuple[list[dict], str]:
+    """Servidores em uso: os do usuário (avançado) ou os embutidos."""
+    if cfg.get("relays"):
+        return cfg["relays"], cfg.get("key", "")
+    return cfg.get("_relays", []), cfg.get("_key", "")
 
 
 def save_config(cfg: dict):
@@ -98,11 +135,62 @@ class Engine:
         self.started_at = 0.0
         self.error = ""
         self.games_seen: dict[str, dict] = {}
+        self.local_only = False
         self.lock = threading.RLock()
         self.logs = LogBuffer()
+        self.notifications: deque = deque(maxlen=50)
+        self.running_ids: set[str] = set()
+        self.library_cache: list[dict] | None = None
         root = logging.getLogger("nopingeyson")
         root.addHandler(self.logs)
         root.setLevel(logging.INFO)
+        threading.Thread(target=self._watch_games, name="nopingeyson-watch", daemon=True).start()
+
+    def notify(self, msg: str, kind: str = "info"):
+        self.notifications.appendleft({"t": time.time(), "msg": msg, "kind": kind})
+        log.info(msg)
+
+    # -- biblioteca ----------------------------------------------------------
+    def library(self, rescan: bool = False) -> list[dict]:
+        """Jogos e apps instalados (detectados) + catálogo + jogos pedidos."""
+        from . import detect
+        found = None if rescan else (self.library_cache or detect.cached())
+        if found is None:
+            found = detect.scan()
+        self.library_cache = found
+        self.cfg["_detected"] = found
+        return found
+
+    def _watch_games(self):
+        """Otimização inteligente: percebe quando um jogo da biblioteca abre."""
+        import psutil
+        while True:
+            time.sleep(3)
+            try:
+                lib = self.cfg.get("_detected") or []
+                if not lib:
+                    continue
+                exe_to_id = {exe: g["id"] for g in lib for exe in g["exes"]}
+                running = set()
+                for p in psutil.process_iter(["name"]):
+                    gid = exe_to_id.get((p.info["name"] or "").lower())
+                    if gid:
+                        running.add(gid)
+                started = running - self.running_ids
+                self.running_ids = running
+                names = {g["id"]: g["name"] for g in lib}
+                for gid in started:
+                    game = next(g for g in lib if g["id"] == gid)
+                    if game.get("category", "Jogos") != "Jogos":
+                        continue
+                    if (self.cfg.get("settings") or {}).get("smart") and self.cfg.get("enabled", True) \
+                            and gid not in self.cfg["active_games"]:
+                        self.apply_routes(gid)
+                        self.notify(f"{names[gid]} aberto: otimização ligada automaticamente", "good")
+                    elif gid in self.cfg["active_games"]:
+                        self.notify(f"{names[gid]} aberto: otimização ativa", "good")
+            except Exception as e:
+                log.debug("watcher: %s", e)
 
     def _call(self, coro, timeout=15):
         return asyncio.run_coroutine_threadsafe(coro, self.loop).result(timeout)
@@ -129,6 +217,8 @@ class Engine:
                 self.cfg["game_settings"][game_id] = dict(self.game_settings(game_id), **settings)
             if game_id not in self.cfg["active_games"]:
                 self.cfg["active_games"].append(game_id)
+            if game_id not in self.cfg.setdefault("connections", []):
+                self.cfg["connections"].append(game_id)
             save_config(self.cfg)
             if self.running and self.measure_only:
                 self.stop()
@@ -194,13 +284,24 @@ class Engine:
             return "já está rodando"
         self.error = ""
         cfg = self.cfg
-        if not cfg.get("key") or not cfg.get("relays"):
-            self.error = "Configure a chave e pelo menos um servidor (relay) em Configurações."
-            return self.error
+        servers, key_text = relays_of(cfg)
+        if not servers or not key_text:
+            # sem servidores: não há rota para melhorar, mas Limitador de tráfego,
+            # PC Boost e o resto continuam funcionando
+            self.local_only = True
+            self.running = True
+            self.started_at = time.time()
+            if (cfg.get("shaper") or {}).get("enabled"):
+                self.start_shaper()
+            if cfg.get("auto_boost"):
+                self.booster.apply(cfg["auto_boost"])
+            log.info("NoPingeyson ligado sem servidores: conexão direta (sem redução de ping)")
+            return "ok"
+        self.local_only = False
         try:
-            key = P.load_key(cfg["key"])
+            key = P.load_key(key_text)
             relays = [RelayInfo(r["name"], r["host"], int(r.get("port", 7000)),
-                                region=r.get("region", "")) for r in cfg["relays"]]
+                                region=r.get("region", "")) for r in servers]
             self.tunnel = Tunnel(relays, key, multipath=2,
                                  two_hop=bool(cfg["two_hop"]),
                                  min_gain_ms=float(cfg["min_gain_ms"]),
@@ -262,13 +363,13 @@ class Engine:
             self.shaper.update(sh.get("download_kbps", 0), sh.get("upload_kbps", 0),
                                sh.get("exceptions", []))
             return "ok"
-        if not self.tunnel or self.measure_only:
-            return "O Traffic Shaper liga junto com as rotas de um jogo."
         from .shaper import TrafficShaper
+        tunnel = self.tunnel
         try:
             self.shaper = TrafficShaper(sh.get("download_kbps", 0), sh.get("upload_kbps", 0),
                                         sh.get("exceptions", []), set(self._active_exes()),
-                                        self.tunnel.relay_ips(), self.tunnel.local_ports())
+                                        tunnel.relay_ips() if tunnel else set(),
+                                        tunnel.local_ports() if tunnel else [])
             self.shaper.start()
         except Exception as e:
             self.shaper = None
@@ -291,6 +392,11 @@ class Engine:
     def snapshot(self) -> dict:
         snap = {
             "running": self.running,
+            "enabled": self.cfg.get("enabled", True),
+            "local_only": self.local_only,
+            "has_servers": bool(relays_of(self.cfg)[0]),
+            "running_games": sorted(self.running_ids),
+            "notifications": list(self.notifications)[:20],
             "measure_only": self.measure_only,
             "active_games": list(self.cfg["active_games"]),
             "error": self.error,

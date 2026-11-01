@@ -1,0 +1,5 @@
+{
+  "_info": "Servidores que já vêm no instalador. Preencha antes de gerar o build (veja o README).",
+  "key": "",
+  "servers": []
+}

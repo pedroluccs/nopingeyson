@@ -5,547 +5,756 @@
 <title>NoPingeyson</title>
 <style>
   :root {
-    --bg: #0b0d14; --side: #10131d; --panel: #151926; --panel2: #1c2133; --line: #262c40;
-    --text: #eef0f6; --muted: #8890a6; --accent: #7c5cff; --accent2: #22d3ee; --good: #34d399;
-    --warn: #fbbf24; --bad: #f43f5e;
+    --bg: #0a0b10; --rail: #0e1017; --top: #0e1017; --panel: #141722; --panel2: #1b1f2d; --panel3: #232838;
+    --line: #242a3b; --text: #eef0f7; --muted: #8a91a8; --dim: #5d6479;
+    --accent: #7c5cff; --accent2: #22d3ee; --good: #34d399; --warn: #fbbf24; --bad: #f43f5e;
+    --grad: linear-gradient(135deg, #7c5cff, #22d3ee);
   }
   * { box-sizing: border-box; }
-  html, body { height: 100%; }
-  body { margin: 0; background: var(--bg); color: var(--text); display: flex;
-         font: 14px/1.45 "Segoe UI", system-ui, sans-serif; overflow: hidden; }
-  button { font: inherit; cursor: pointer; }
-  /* barra lateral */
-  aside { width: 220px; background: var(--side); border-right: 1px solid var(--line);
-          display: flex; flex-direction: column; padding: 18px 12px; }
-  .logo { display: flex; align-items: center; gap: 10px; padding: 0 8px 22px; }
-  .logo-mark { width: 34px; height: 34px; border-radius: 10px; object-fit: cover; }
-  .logo b { font-size: 17px; letter-spacing: .3px; } .logo b span { color: var(--accent2); }
-  .navlabel { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 14px 10px 6px; }
-  aside nav button { display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: 0;
-         color: var(--muted); text-align: left; padding: 9px 10px; border-radius: 9px; }
-  aside nav button:hover { background: var(--panel); color: var(--text); }
-  aside nav button.on { background: var(--panel2); color: var(--text); box-shadow: inset 3px 0 0 var(--accent); }
-  .ico { width: 18px; text-align: center; opacity: .85; }
-  .side-foot { margin-top: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
-  .pill { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: var(--muted); }
-  .dot.on { background: var(--good); box-shadow: 0 0 8px var(--good); } .dot.off { background: var(--bad); }
-  /* conteúdo */
-  main { flex: 1; overflow-y: auto; padding: 22px 28px 40px; }
-  .view { display: none; } .view.on { display: block; }
-  h1 { font-size: 22px; margin: 0 0 4px; } h2 { font-size: 16px; margin: 0 0 12px; }
-  .sub { color: var(--muted); margin: 0 0 18px; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.45 "Segoe UI", system-ui, sans-serif;
+         display: grid; grid-template-columns: 68px 1fr; grid-template-rows: 52px 1fr; overflow: hidden; user-select: none; }
+  button { font: inherit; cursor: pointer; color: inherit; }
+  svg.i { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  .rail { grid-row: 1 / 3; background: var(--rail); border-right: 1px solid var(--line); display: flex; flex-direction: column;
+          align-items: center; padding: 10px 0; gap: 4px; }
+  .rail .brand { width: 40px; height: 40px; border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
+  .rail .brand img { width: 100%; height: 100%; object-fit: cover; }
+  .rail button { position: relative; width: 46px; height: 42px; border: 0; background: none; color: var(--muted);
+                 border-radius: 11px; display: grid; place-items: center; }
+  .rail button:hover { background: var(--panel2); color: var(--text); }
+  .rail button.on { background: rgba(124, 92, 255, .16); color: #fff; }
+  .rail button.on::before { content: ""; position: absolute; left: -11px; top: 9px; bottom: 9px; width: 3px; border-radius: 3px; background: var(--grad); }
+  .rail button .tip { position: absolute; left: 56px; background: var(--panel3); color: var(--text); padding: 5px 10px; border-radius: 7px;
+                      white-space: nowrap; font-size: 12px; opacity: 0; pointer-events: none; transition: opacity .12s; z-index: 50; }
+  .rail button:hover .tip { opacity: 1; }
+  .rail .sep { width: 28px; height: 1px; background: var(--line); margin: 6px 0; }
+  .rail .bottom { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .rail .ver { color: var(--dim); font-size: 10px; margin-top: 6px; }
+
+  .top { background: var(--top); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 14px; padding: 0 8px 0 18px; position: relative; }
+  .top .drag { flex: 1; height: 100%; display: flex; align-items: center; gap: 12px; }
+  .top .title { font-weight: 700; letter-spacing: .2px; } .top .title span { background: var(--grad); -webkit-background-clip: text; color: transparent; }
+  .power { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 4px 6px 4px 12px; }
+  .power b { font-size: 12px; letter-spacing: 1px; }
+  .switch { position: relative; width: 42px; height: 24px; border-radius: 14px; background: var(--panel3); border: 0; flex: none; transition: background .15s; }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #cfd3e0; transition: left .15s; }
+  .switch.on { background: var(--grad); } .switch.on::after { left: 21px; background: #fff; }
+  .tsearch { display: flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; width: 260px; height: 34px; color: var(--muted); }
+  .tsearch input { background: none; border: 0; outline: none; color: var(--text); font: inherit; width: 100%; }
+  .iconbtn { width: 36px; height: 36px; border-radius: 10px; border: 0; background: none; color: var(--muted); display: grid; place-items: center; position: relative; }
+  .iconbtn:hover { background: var(--panel2); color: var(--text); }
+  .iconbtn.close:hover { background: var(--bad); color: #fff; }
+  .badge { position: absolute; top: 6px; right: 6px; min-width: 8px; height: 8px; border-radius: 6px; background: var(--bad); }
+  .drop { position: absolute; top: 48px; right: 90px; width: 340px; max-height: 420px; overflow-y: auto; background: var(--panel); border: 1px solid var(--line);
+          border-radius: 12px; box-shadow: 0 18px 40px rgba(0,0,0,.45); z-index: 60; display: none; padding: 8px; }
+  .drop.on { display: block; }
+  .note { padding: 9px 10px; border-radius: 9px; font-size: 13px; } .note + .note { border-top: 1px solid var(--line); }
+  .note small { color: var(--dim); display: block; }
+
+  main { overflow-y: auto; padding: 22px 28px 40px; }
+  .page { display: none; } .page.on { display: block; animation: fade .18s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .banner { position: relative; overflow: hidden; border-radius: 16px; padding: 22px 26px; margin-bottom: 20px; min-height: 104px;
+            display: flex; flex-direction: column; justify-content: center; }
+  .banner h1 { margin: 0; font-size: 24px; position: relative; z-index: 1; } .banner p { margin: 4px 0 0; color: rgba(255,255,255,.8); max-width: 640px; position: relative; z-index: 1; }
+  .banner::after { content: ""; position: absolute; right: -40px; top: -60px; width: 260px; height: 260px; border-radius: 50%; background: rgba(255,255,255,.08); }
+  .banner::before { content: ""; position: absolute; right: 120px; bottom: -90px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,.06); }
+  .b-violet { background: linear-gradient(120deg, #3b2a8f, #7c5cff 55%, #4f46e5); }
+  .b-cyan { background: linear-gradient(120deg, #0e4f63, #0ea5b7 55%, #22d3ee); }
+  .b-pink { background: linear-gradient(120deg, #5b1a4a, #db2777 60%, #f472b6); }
+  .b-green { background: linear-gradient(120deg, #0f4d3a, #059669 55%, #34d399); }
+  .b-orange { background: linear-gradient(120deg, #5a2b0b, #ea580c 60%, #fb923c); }
+  .b-blue { background: linear-gradient(120deg, #13306b, #2563eb 55%, #60a5fa); }
+  .b-slate { background: linear-gradient(120deg, #1b2030, #3b4257 60%, #586179); }
+
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
-  .row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+  .row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .muted { color: var(--muted); } .good { color: var(--good); } .bad { color: var(--bad); } .warn { color: var(--warn); }
-  .banner { padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; display: flex; gap: 12px; align-items: center; }
-  .banner.warn { background: #33280c; color: #fde68a; } .banner.err { background: #3b1220; color: #fecdd3; }
-  input, select { background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 9px;
-                  padding: 9px 11px; font: inherit; outline: none; }
-  input:focus, select:focus { border-color: var(--accent); }
-  input[type=checkbox] { width: 17px; height: 17px; accent-color: var(--accent); }
-  input[type=range] { accent-color: var(--accent); padding: 0; }
-  .btn { border: 1px solid var(--line); background: var(--panel2); color: var(--text); border-radius: 9px; padding: 8px 14px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  h2 { font-size: 15px; margin: 0 0 12px; } h3 { font-size: 13px; color: var(--muted); margin: 22px 0 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; }
+  .muted { color: var(--muted); } .dim { color: var(--dim); } .good { color: var(--good); } .bad { color: var(--bad); } .warn { color: var(--warn); }
+  .btn { border: 1px solid var(--line); background: var(--panel2); border-radius: 10px; padding: 9px 16px; }
   .btn:hover { border-color: var(--accent); }
-  .btn.primary { background: linear-gradient(135deg, var(--accent), #5b8cff); border: 0; color: #fff; font-weight: 600; }
-  .btn.danger { background: var(--bad); border: 0; color: #fff; font-weight: 600; }
-  .btn.big { padding: 14px 26px; font-size: 15px; letter-spacing: .6px; border-radius: 12px; text-transform: uppercase; }
+  .btn.primary { background: var(--grad); border: 0; color: #fff; font-weight: 600; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  input.f, select.f { background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; font: inherit; outline: none; }
+  input.f:focus, select.f:focus { border-color: var(--accent); }
+  input[type=range] { accent-color: var(--accent); } input[type=checkbox] { accent-color: var(--accent); width: 16px; height: 16px; }
   table { width: 100%; border-collapse: collapse; }
-  th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
   th { color: var(--muted); font-size: 12px; font-weight: 600; }
-  tr.pick { cursor: pointer; } tr.pick:hover td { background: var(--panel2); } tr.sel td { background: #241f45; }
-  /* biblioteca */
-  .search { display: flex; gap: 10px; margin-bottom: 14px; }
-  .search input { flex: 1; padding: 11px 14px; font-size: 15px; }
-  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-  .chip { border: 1px solid var(--line); background: var(--panel); color: var(--muted); border-radius: 20px; padding: 5px 13px; }
-  .chip.on { border-color: var(--accent); color: var(--text); background: #221d40; }
-  .games { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
-  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; cursor: pointer;
-          position: relative; transition: transform .12s, border-color .12s; }
-  .tile:hover { transform: translateY(-2px); border-color: var(--accent); }
-  .art { height: 96px; display: grid; place-items: center; font-size: 30px; font-weight: 800; color: rgba(255,255,255,.92);
-         text-shadow: 0 2px 10px rgba(0,0,0,.35); letter-spacing: 1px; }
-  .tile .nm { padding: 9px 11px 2px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tile .gn { padding: 0 11px 10px; color: var(--muted); font-size: 12px; }
-  .tile .badge { position: absolute; top: 8px; right: 8px; background: var(--good); color: #052; font-size: 11px;
-                 font-weight: 700; padding: 2px 8px; border-radius: 10px; }
-  .tile .fav { position: absolute; top: 6px; left: 8px; color: var(--warn); font-size: 16px; }
-  /* página do jogo */
-  .game-head { display: flex; gap: 18px; align-items: center; margin-bottom: 18px; }
-  .game-head .art { width: 120px; height: 72px; border-radius: 12px; font-size: 24px; }
-  .back { background: none; border: 0; color: var(--muted); padding: 0; margin-bottom: 12px; }
-  .opt-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .8px; margin: 16px 0 7px; }
+  .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); margin-bottom: 18px; }
+  .tabs button { border: 0; background: none; color: var(--muted); padding: 10px 14px; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tabs button.on { color: var(--text); border-color: var(--accent); }
+  .tab { display: none; } .tab.on { display: block; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 20px; font-size: 12px; background: var(--panel2); color: var(--muted); }
+  .pill.good { background: rgba(52, 211, 153, .12); color: var(--good); } .pill.warn { background: rgba(251, 191, 36, .12); color: var(--warn); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: var(--dim); }
+  .dot.on { background: var(--good); box-shadow: 0 0 8px var(--good); } .dot.off { background: var(--bad); }
+  .empty { text-align: center; color: var(--muted); padding: 34px 20px; grid-column: 1 / -1; }
+  .empty svg { width: 46px; height: 46px; stroke: var(--dim); fill: none; stroke-width: 1.4; margin-bottom: 8px; }
+  .gameicon { width: 48px; height: 48px; border-radius: 12px; background: var(--panel3); flex: none; display: grid; place-items: center;
+              font-weight: 800; color: #fff; overflow: hidden; }
+  .gameicon img { width: 100%; height: 100%; object-fit: cover; }
+
+  .conns { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+  .conn { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; min-height: 160px; }
+  .conn:hover { border-color: #3a4160; }
+  .conn.live { border-color: rgba(124, 92, 255, .6); box-shadow: 0 0 24px rgba(124, 92, 255, .12); }
+  .conn .x { position: absolute; top: 8px; right: 8px; border: 0; background: none; color: var(--dim); width: 26px; height: 26px; border-radius: 7px; }
+  .conn .x:hover { background: var(--panel2); color: var(--text); }
+  .conn .nm { font-weight: 600; } .conn .st { font-size: 12px; color: var(--muted); }
+  .conn .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; }
+  .conn.add { align-items: center; justify-content: center; border-style: dashed; color: var(--muted); }
+  .conn.add .plus { width: 46px; height: 46px; border-radius: 50%; background: var(--panel2); display: grid; place-items: center; font-size: 26px; }
+
+  .cats { display: flex; gap: 8px; flex-wrap: wrap; }
+  .cat { border: 1px solid var(--line); background: var(--panel); color: var(--muted); border-radius: 20px; padding: 6px 14px; }
+  .cat.on { background: rgba(124, 92, 255, .16); color: #fff; border-color: var(--accent); }
+  .libwrap { display: grid; grid-template-columns: 1fr 22px; gap: 10px; margin-top: 16px; }
+  .letter { color: var(--muted); font-weight: 700; margin: 14px 0 8px; }
+  .lib { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 10px 12px; text-align: center; cursor: pointer; position: relative; transition: transform .1s; }
+  .tile:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .tile .gameicon { width: 64px; height: 64px; margin: 0 auto 10px; border-radius: 14px; }
+  .tile .nm { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tile .sub { font-size: 11px; color: var(--dim); }
+  .tile.off { opacity: .55; }
+  .tile .chk { position: absolute; top: 8px; right: 8px; width: 18px; height: 18px; border-radius: 50%; background: var(--grad); display: grid; place-items: center; font-size: 11px; color: #fff; }
+  .az { display: flex; flex-direction: column; align-items: center; gap: 1px; position: sticky; top: 0; align-self: start; }
+  .az button { border: 0; background: none; color: var(--dim); font-size: 10.5px; padding: 1px 0; width: 20px; }
+  .az button.has { color: var(--muted); } .az button.has:hover { color: var(--accent2); }
+
+  .bigpower { width: 150px; height: 150px; border-radius: 50%; border: 0; background: var(--panel2); display: grid; place-items: center; margin: 10px auto 10px;
+              box-shadow: 0 0 0 10px rgba(255,255,255,.03); color: var(--muted); transition: all .2s; }
+  .bigpower svg { width: 56px; height: 56px; stroke-width: 2.2; }
+  .bigpower.on { background: var(--grad); color: #fff; box-shadow: 0 0 0 10px rgba(124, 92, 255, .18), 0 0 50px rgba(34, 211, 238, .35); }
+  .center { text-align: center; }
+
+  .preset { border: 1px solid var(--line); background: var(--panel); border-radius: 14px; padding: 16px; text-align: left; }
+  .preset.on { border-color: var(--accent); background: rgba(124, 92, 255, .1); }
+  .preset b { display: block; margin-bottom: 4px; }
+  .tgl { display: flex; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+  .tgl .t { flex: 1; } .tgl small { color: var(--dim); display: block; }
+  .gauge { width: 180px; height: 180px; border-radius: 50%; margin: 6px auto 16px; display: grid; place-items: center; background: var(--panel3); }
+  .gauge > div { width: 140px; height: 140px; border-radius: 50%; background: var(--panel); display: grid; place-items: center; text-align: center; }
+  .gauge b { font-size: 28px; }
+
+  .shade { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; z-index: 70; }
+  .shade.on { display: block; }
+  .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 520px; background: var(--rail); border-left: 1px solid var(--line); z-index: 71;
+            transform: translateX(100%); transition: transform .2s ease; overflow-y: auto; }
+  .drawer.on { transform: none; }
+  .hero { height: 150px; background-size: cover; background-position: center; position: relative; }
+  .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,11,16,.1), var(--rail)); }
+  .drawer .body { padding: 0 22px 24px; margin-top: -40px; position: relative; z-index: 1; }
   .seg { display: inline-flex; background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
-  .seg button { background: none; border: 0; color: var(--muted); padding: 7px 16px; border-radius: 8px; }
+  .seg button { border: 0; background: none; color: var(--muted); padding: 7px 14px; border-radius: 8px; }
   .seg button.on { background: var(--accent); color: #fff; }
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 14px; }
-  .stat { background: var(--panel2); border-radius: 12px; padding: 12px 14px; }
-  .stat .v { font-size: 24px; font-weight: 700; } .stat .l { color: var(--muted); font-size: 12px; }
-  canvas { width: 100%; height: 190px; display: block; }
-  .log { font: 12px Consolas, monospace; color: var(--muted); white-space: pre-wrap; max-height: 170px; overflow-y: auto; }
-  label.opt { display: flex; gap: 12px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--line); }
-  label.opt:last-child { border-bottom: 0; }
-  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--panel2); border: 1px solid var(--line);
-           padding: 11px 16px; border-radius: 10px; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: 420px; }
+  .lbl { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .7px; margin: 16px 0 7px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+  .stat .v { font-size: 22px; font-weight: 700; } .stat .l { color: var(--muted); font-size: 12px; }
+  canvas { width: 100%; height: 170px; display: block; }
+
+  .modal { position: fixed; inset: 0; display: none; place-items: center; z-index: 80; background: rgba(0,0,0,.55); }
+  .modal.on { display: grid; }
+  .modal .box { width: min(760px, 92vw); max-height: 84vh; overflow-y: auto; background: var(--rail); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+  .pick { display: flex; align-items: center; gap: 12px; padding: 9px; border-radius: 10px; cursor: pointer; }
+  .pick:hover { background: var(--panel2); }
+  .pickgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; max-height: 50vh; overflow-y: auto; margin-top: 12px; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--panel3); border: 1px solid var(--line);
+           padding: 11px 18px; border-radius: 12px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 90; }
   .toast.on { opacity: 1; }
   .meter { height: 8px; background: var(--panel2); border-radius: 6px; overflow: hidden; margin-top: 6px; }
-  .meter > div { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
-  .empty { color: var(--muted); padding: 30px; text-align: center; }
+  .meter > div { height: 100%; background: var(--grad); }
+  .infobox { border: 1px solid rgba(251, 191, 36, .35); background: rgba(251, 191, 36, .07); border-radius: 12px; padding: 14px 16px; }
+  .log { font: 12px Consolas, monospace; color: var(--muted); white-space: pre-wrap; max-height: 180px; overflow-y: auto; user-select: text; }
+  ::-webkit-scrollbar { width: 9px; } ::-webkit-scrollbar-thumb { background: var(--panel3); border-radius: 6px; }
 </style>
 </head>
 <body>
-<aside>
-  <div class="logo"><img class="logo-mark" src="logo.png" alt=""><b>NoPing<span>eyson</span></b></div>
-  <nav>
-    <button data-view="library" class="on"><span class="ico">▦</span>Jogos</button>
-    <button data-view="routes"><span class="ico">⇄</span>Minhas rotas</button>
-    <div class="navlabel">Ferramentas</div>
-    <button data-view="boost"><span class="ico">⚡</span>FPS Boost</button>
-    <button data-view="shaper"><span class="ico">≋</span>Traffic Shaper</button>
-    <button data-view="multi"><span class="ico">⇶</span>Multi Internet</button>
-    <button data-view="diag"><span class="ico">◎</span>Diagnóstico</button>
-    <button data-view="request"><span class="ico">＋</span>Pedir jogo novo</button>
-    <div class="navlabel">Conta</div>
-    <button data-view="settings"><span class="ico">⚙</span>Configurações</button>
-  </nav>
-  <div class="side-foot">
-    <div class="pill"><span class="dot" id="sideDot"></span><span id="sideStatus">Parado</span></div>
-    <div class="muted" id="sideInfo" style="font-size:12px;margin-top:4px">Nenhuma rota aplicada</div>
+<nav class="rail" id="rail">
+  <div class="brand"><img src="logo.png" alt=""></div>
+  <button data-page="home" class="on"><svg class="i" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span class="tip">Início</span></button>
+  <button data-page="conns"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/><circle cx="5" cy="12" r="2"/></svg><span class="tip">Conexões</span></button>
+  <button data-page="library"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span class="tip">Biblioteca</span></button>
+  <button data-page="servers"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg><span class="tip">Servidores</span></button>
+  <div class="sep"></div>
+  <button data-page="analyzer"><svg class="i" viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span class="tip">Analisador de rede</span></button>
+  <button data-page="boost"><svg class="i" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg><span class="tip">PC Boost</span></button>
+  <button data-page="multi"><svg class="i" viewBox="0 0 24 24"><path d="M2 9a15 15 0 0 1 20 0M5 13a10 10 0 0 1 14 0M8.5 16.5a5 5 0 0 1 7 0"/><circle cx="12" cy="20" r="1"/></svg><span class="tip">Multi Internet</span></button>
+  <button data-page="limiter"><svg class="i" viewBox="0 0 24 24"><path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l4-6"/></svg><span class="tip">Limitador de tráfego</span></button>
+  <div class="bottom">
+    <button data-page="settings"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span class="tip">Configurações</span></button>
+    <button data-page="help"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></svg><span class="tip">Ajuda</span></button>
+    <div class="ver" id="ver"></div>
+  </div>
+</nav>
+
+<header class="top">
+  <div class="drag pywebview-drag-region">
+    <span class="title">NoPing<span>eyson</span></span>
+    <span class="pill" id="topStatus"><span class="dot"></span> Parado</span>
+  </div>
+  <div class="power"><b id="powerTxt">OFF</b><button class="switch" id="powerSw" onclick="togglePower()"></button></div>
+  <div class="tsearch"><svg class="i" viewBox="0 0 24 24" style="width:16px"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <input id="topSearch" placeholder="Pesquisar jogo ou app" oninput="topSearch(this.value)"></div>
+  <button class="iconbtn" id="bellBtn" onclick="toggleBell()" title="Notificações"><svg class="i" viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg><span class="badge" id="bellBadge" style="display:none"></span></button>
+  <button class="iconbtn" onclick="api().minimize()" title="Minimizar"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+  <button class="iconbtn close" onclick="api().close()" title="Fechar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div class="drop" id="bell"></div>
+</header>
+
+<main id="main">
+  <div id="adminBanner" class="infobox" style="display:none;margin-bottom:16px">
+    O NoPingeyson precisa de permissão de Administrador para otimizar os jogos.
+    <button class="btn" style="margin-left:10px" onclick="api().relaunch_admin()">Reabrir como Administrador</button>
+  </div>
+
+  <section class="page on" id="p-home">
+    <div class="banner b-violet"><h1>Bem-vindo ao NoPingeyson</h1><p>Seus jogos já foram encontrados. Deixe o botão do topo em ON e jogue: o resto é automático.</p></div>
+    <div class="grid3">
+      <div class="card"><div class="muted">Otimização</div><div style="font-size:22px;font-weight:700;margin-top:4px" id="hStatus">—</div><div class="muted" id="hStatusSub" style="font-size:12px"></div></div>
+      <div class="card"><div class="muted">Jogos encontrados no PC</div><div style="font-size:22px;font-weight:700;margin-top:4px" id="hGames">—</div><div class="muted" style="font-size:12px" id="hRunning"></div></div>
+      <div class="card"><div class="muted">Memória em uso</div><div style="font-size:22px;font-weight:700;margin-top:4px" id="hRam">—</div><div class="meter"><div id="hRamBar" style="width:0"></div></div></div>
+    </div>
+    <h3>Atalhos</h3>
+    <div class="row">
+      <button class="btn primary" onclick="openPicker()">+ Adicionar jogo</button>
+      <button class="btn" onclick="go('boost');boostTab('ram')">Limpar memória RAM</button>
+      <button class="btn" onclick="go('analyzer');anTab('regions');runRegions()">Testar ping</button>
+      <button class="btn" onclick="go('boost');boostTab('dns')">Achar o DNS mais rápido</button>
+    </div>
+    <h3>Seus jogos</h3>
+    <div class="lib" id="homeGames"></div>
+  </section>
+
+  <section class="page" id="p-conns">
+    <div class="banner b-cyan"><h1>Conexões</h1><p>Jogos e apps otimizados. Com a otimização inteligente, o jogo entra aqui sozinho quando você abre.</p></div>
+    <div class="conns" id="conns"></div>
+  </section>
+
+  <section class="page" id="p-library">
+    <div class="banner b-pink"><h1>Biblioteca</h1><p>Tudo o que encontramos instalado no seu PC, mais os jogos suportados.</p></div>
+    <div class="row" style="justify-content:space-between">
+      <div class="cats" id="cats"></div>
+      <div class="row">
+        <input class="f" id="libSearch" placeholder="Pesquisar" oninput="renderLibrary()" style="width:190px">
+        <label class="row muted" style="gap:6px;font-size:13px"><input type="checkbox" id="libAll" onchange="renderLibrary()"> Não instalados</label>
+        <button class="btn" onclick="rescan(this)">Procurar jogos</button>
+        <button class="btn" onclick="openModal('mReq')">Solicitar jogo</button>
+      </div>
+    </div>
+    <div class="libwrap"><div id="lib"></div><div class="az" id="az"></div></div>
+  </section>
+
+  <section class="page" id="p-servers">
+    <div class="banner b-blue"><h1>Servidores</h1><p>Servidores que o NoPingeyson usa para levar seu jogo por um caminho mais rápido.</p></div>
+    <div id="srvBox"></div>
+    <div class="card" style="margin-top:16px"><h2>Caminhos medidos agora</h2>
+      <table><thead><tr><th>Caminho</th><th>Ping</th><th>Variação</th><th>Perda</th></tr></thead><tbody id="srvPaths"></tbody></table></div>
+  </section>
+
+  <section class="page" id="p-analyzer">
+    <div class="banner b-green"><h1>Analisador de rede</h1><p>Veja o que está acontecendo com a sua conexão.</p></div>
+    <div class="tabs" id="anTabs">
+      <button data-t="live" class="on">Monitoramento em tempo real</button><button data-t="scan">Scanner</button>
+      <button data-t="regions">Ping para jogos</button><button data-t="tools">Ferramentas</button>
+    </div>
+    <div class="tab on" id="an-live">
+      <div class="grid3" style="margin-bottom:16px">
+        <div class="stat"><div class="l">Download agora</div><div class="v" id="liveDown">—</div></div>
+        <div class="stat"><div class="l">Upload agora</div><div class="v" id="liveUp">—</div></div>
+        <div class="stat"><div class="l">Processador</div><div class="v" id="liveCpu">—</div></div>
+      </div>
+      <div class="card"><h2>Uso de rede (Mbps)</h2><canvas id="liveChart"></canvas></div>
+      <div class="card" style="margin-top:16px"><h2>Conexões dos jogos</h2>
+        <table><thead><tr><th>Jogo</th><th>Servidor</th><th>Estado</th><th>Ping</th><th>Direto</th><th>Pacotes salvos</th></tr></thead><tbody id="liveTargets"></tbody></table></div>
+    </div>
+    <div class="tab" id="an-scan">
+      <div class="card"><h2>Rastrear rota</h2><p class="muted">Mostra cada roteador entre você e o destino, e onde o atraso aparece.</p>
+        <div class="row"><input class="f" id="trHost" value="1.1.1.1" style="width:260px"><button class="btn primary" onclick="runTrace(this)">Rastrear</button></div>
+        <table style="margin-top:12px"><thead><tr><th>#</th><th>Roteador</th><th>Ping</th><th>Perda</th></tr></thead><tbody id="trOut"></tbody></table></div>
+    </div>
+    <div class="tab" id="an-regions">
+      <div class="card"><h2>Ping para regiões de jogos</h2><p class="muted">Latência até datacenters onde muitos jogos online hospedam servidores.</p>
+        <button class="btn primary" onclick="runRegions(this)">Testar agora</button>
+        <table style="margin-top:12px"><thead><tr><th>Região</th><th>Ping</th><th></th></tr></thead><tbody id="regOut"></tbody></table></div>
+    </div>
+    <div class="tab" id="an-tools">
+      <div class="grid2">
+        <div class="card"><h2>Teste de velocidade</h2><p class="muted">Baixa um arquivo público de teste da OVH por ~8 s.</p>
+          <div class="stat"><div class="l">Download</div><div class="v" id="spDown">—</div></div>
+          <button class="btn primary" style="margin-top:12px" onclick="runSpeed(this)">Testar velocidade</button></div>
+        <div class="card"><h2>Ping, variação e perda</h2><p class="muted">20 pings para DNS públicos.</p>
+          <table><tbody id="pgOut"></tbody></table>
+          <button class="btn primary" style="margin-top:12px" onclick="runPing(this)">Testar</button></div>
+        <div class="card"><h2>Limpar cache de DNS</h2><p class="muted">Resolve sites e servidores que mudaram de endereço.</p>
+          <button class="btn" onclick="flushDns()">Limpar cache</button></div>
+        <div class="card"><h2>Monitor do PC</h2><div id="devOut" class="muted">—</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="p-boost">
+    <div class="banner b-orange"><h1>PC Boost</h1><p>Ajustes do Windows para mais FPS e menos atraso. Tudo pode ser desfeito.</p></div>
+    <div class="tabs" id="boostTabs"><button data-t="sys" class="on">Ajustes de sistema</button><button data-t="ram">Limpeza de RAM</button><button data-t="dns">DNS Optimizer</button></div>
+    <div class="tab on" id="bo-sys">
+      <div class="grid3">
+        <button class="preset" data-p="padrao" onclick="preset('padrao')"><b>Padrão</b><span class="muted">Windows como veio de fábrica.</span></button>
+        <button class="preset" data-p="alto" onclick="preset('alto')"><b>Alto desempenho</b><span class="muted">Ajustes recomendados para jogar.</span></button>
+        <button class="preset" data-p="custom" onclick="markPreset('custom')"><b>Personalizado</b><span class="muted">Escolha um por um abaixo.</span></button>
+      </div>
+      <div class="grid2" style="margin-top:16px" id="tweaks"></div>
+    </div>
+    <div class="tab" id="bo-ram">
+      <div class="card center">
+        <div class="gauge" id="ramGauge"><div><div><b id="ramPct">—</b><div class="muted" id="ramTxt"></div></div></div></div>
+        <button class="btn primary" style="padding:12px 28px" onclick="cleanRam(this)">Limpar memória</button>
+        <p class="muted" id="ramRes"></p>
+      </div>
+    </div>
+    <div class="tab" id="bo-dns">
+      <div class="card"><h2>Encontre o DNS mais rápido para você</h2>
+        <p class="muted">Testamos os principais DNS públicos a partir da sua internet.</p>
+        <div class="row"><button class="btn primary" onclick="dnsBench(this)">Testar DNS</button><button class="btn" onclick="dnsRestore()">Voltar ao automático</button></div>
+        <table style="margin-top:12px"><thead><tr><th>DNS</th><th>Endereços</th><th>Resposta</th><th></th></tr></thead><tbody id="dnsOut"></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="page" id="p-multi">
+    <div class="banner b-slate"><h1>Multi Internet</h1><p>Use duas conexões ao mesmo tempo (cabo + Wi‑Fi, fibra + 4G). Se uma falhar, a outra segura a partida.</p></div>
+    <div class="card center">
+      <button class="bigpower" id="miPower" onclick="toggleMulti()"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v8M6.3 7.3a8 8 0 1 0 11.4 0"/></svg></button>
+      <div id="miState" class="muted">Desligado</div>
+    </div>
+    <div class="card" style="margin-top:16px"><h2>Conexões disponíveis</h2>
+      <table><thead><tr><th></th><th>Conexão</th><th>IP</th><th>Internet</th><th>Placa</th></tr></thead><tbody id="miList"></tbody></table></div>
+  </section>
+
+  <section class="page" id="p-limiter">
+    <div class="banner b-blue"><h1>Limitador de tráfego</h1><p>Segura downloads, atualizações e streaming para sobrar banda para o jogo.</p></div>
+    <div class="card center">
+      <button class="bigpower" id="shPower" onclick="toggleShaper()"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v8M6.3 7.3a8 8 0 1 0 11.4 0"/></svg></button>
+      <div id="shState" class="muted">Desligado</div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="lbl">Download dos outros programas: <b id="shDownV"></b></div>
+      <input type="range" id="shDown" min="0" max="500" step="5" style="width:100%" oninput="shLabels()" onchange="saveShaper()">
+      <div class="lbl">Upload dos outros programas: <b id="shUpV"></b></div>
+      <input type="range" id="shUp" min="0" max="200" step="1" style="width:100%" oninput="shLabels()" onchange="saveShaper()">
+      <div class="lbl">Nunca limitar</div>
+      <div class="cats" id="shExc"></div>
+      <div class="row" style="margin-top:10px"><select class="f" id="shProc" style="min-width:280px"></select><button class="btn" onclick="addExc()">Adicionar</button></div>
+      <p class="muted" id="shStats" style="margin-top:12px"></p>
+    </div>
+  </section>
+
+  <section class="page" id="p-settings">
+    <div class="banner b-slate"><h1>Configurações</h1><p>Tudo já vem pronto. Mude só se quiser.</p></div>
+    <div class="grid2">
+      <div class="tgl"><div class="t"><b>Otimização inteligente</b><small>Liga a otimização sozinha quando você abre um jogo.</small></div><button class="switch" data-s="smart"></button></div>
+      <div class="tgl"><div class="t"><b>Rotas duplas</b><small>Manda cada pacote por 2 caminhos: menos perda.</small></div><button class="switch" data-s="dual_routes"></button></div>
+      <div class="tgl"><div class="t"><b>Iniciar com o Windows</b><small>Abre minimizado na bandeja ao ligar o PC.</small></div><button class="switch" data-s="startup"></button></div>
+      <div class="tgl"><div class="t"><b>Minimizar para a bandeja</b><small>Fechar a janela deixa o NoPingeyson rodando perto do relógio.</small></div><button class="switch" data-s="tray"></button></div>
+      <div class="tgl"><div class="t"><b>Notificações</b><small>Avisos quando um jogo for otimizado.</small></div><button class="switch" data-s="notifications"></button></div>
+      <div class="tgl"><div class="t"><b>Usar direto quando for mais rápido</b><small>Se a sua rota normal já for a melhor, o jogo não é desviado.</small></div><button class="switch" data-c="prefer_direct"></button></div>
+      <div class="tgl"><div class="t"><b>Idioma</b><small>Português (Brasil)</small></div></div>
+      <div class="tgl"><div class="t"><b>Método de redirecionamento</b><small>WinDivert (filtro de pacotes do Windows), só para os jogos escolhidos.</small></div></div>
+    </div>
+    <h3>Avançado: servidores próprios</h3>
+    <div class="card">
+      <p class="muted" style="margin-top:0">Só para quem tem VPS própria rodando <code>nopingeyson.relay</code>. Se vazio, o NoPingeyson usa os servidores que vêm com ele.</p>
+      <table><thead><tr><th>Nome</th><th>Região</th><th>Endereço</th><th>Porta</th><th></th></tr></thead><tbody id="ownRelays"></tbody></table>
+      <div class="row" style="margin-top:10px"><input class="f" id="rName" placeholder="Nome" style="width:110px"><input class="f" id="rRegion" placeholder="Região" style="width:130px">
+        <input class="f" id="rHost" placeholder="IP ou domínio" style="flex:1"><input class="f" id="rPort" placeholder="7000" style="width:80px"><button class="btn" onclick="addRelay()">Adicionar</button></div>
+      <div class="row" style="margin-top:10px"><input class="f" id="ownKey" type="password" placeholder="Chave dos seus servidores" style="flex:1"><button class="btn primary" onclick="saveRelays()">Salvar servidores</button></div>
+    </div>
+  </section>
+
+  <section class="page" id="p-help">
+    <div class="banner b-violet"><h1>Ajuda</h1><p>Dúvidas comuns.</p></div>
+    <div class="grid2">
+      <div class="card"><h2>Como uso?</h2><p class="muted">Abra o jogo. Com a otimização inteligente ligada, ele aparece em Conexões e já é otimizado. Para escolher região ou caminhos, clique no card do jogo.</p></div>
+      <div class="card"><h2>Por que o ping não caiu?</h2><p class="muted">A redução de ping depende de servidores do NoPingeyson perto do servidor do jogo. Se a sua rota normal já for a melhor, o jogo continua direto. Veja a aba Servidores.</p></div>
+      <div class="card"><h2>Anti-cheat</h2><p class="muted">O NoPingeyson não toca no jogo (memória, arquivos, overlay). Ele usa o driver de rede WinDivert, que alguns anti-cheats podem bloquear. Se um jogo reclamar, desligue no topo e abra o jogo de novo.</p></div>
+      <div class="card"><h2>Código e novidades</h2><p class="muted">github.com/pedroluccs/nopingeyson</p></div>
+    </div>
+  </section>
+</main>
+
+<div class="shade" id="shade" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer">
+  <div class="hero" id="dHero"></div>
+  <div class="body">
+    <div class="row"><div id="dIconWrap"></div>
+      <div style="flex:1"><h2 id="dName" style="margin:0;font-size:19px"></h2><div class="muted" id="dSub" style="font-size:12px"></div></div>
+      <button class="switch" id="dSw" onclick="drawerToggle()"></button></div>
+    <div class="lbl">Região</div><select class="f" id="dRegion" style="width:100%" onchange="drawerSave()"></select>
+    <div class="lbl">Modo de rota</div>
+    <div class="seg" id="dMode"><button data-v="auto" class="on">Automático</button><button data-v="manual">Manual</button></div>
+    <div id="dManual" style="display:none"><div class="lbl">Servidor</div><select class="f" id="dExit" style="width:100%" onchange="drawerSave()"></select></div>
+    <div class="lbl">Rotas simultâneas</div>
+    <div class="seg" id="dConn"><button data-v="1">1</button><button data-v="2" class="on">2</button><button data-v="3">3</button><button data-v="4">4</button></div>
+    <div class="row" style="margin-top:16px"><button class="btn" onclick="launchGame()">Abrir jogo</button></div>
+    <div class="lbl">Agora</div>
+    <div class="stats"><div class="stat"><div class="l">Ping</div><div class="v" id="dPing">—</div></div>
+      <div class="stat"><div class="l">Direto</div><div class="v" id="dDirect">—</div></div>
+      <div class="stat"><div class="l">Pacotes salvos</div><div class="v" id="dSaved">0</div></div></div>
+    <div class="card" style="margin-top:12px"><canvas id="dChart"></canvas></div>
+    <div class="log" id="dLog" style="margin-top:12px"></div>
   </div>
 </aside>
 
-<main>
-  <div id="adminBanner" class="banner warn" style="display:none">
-    <span>O NoPingeyson precisa rodar como Administrador para desviar o tráfego dos jogos e aplicar o FPS Boost.</span>
-    <button class="btn" onclick="pywebview.api.relaunch_admin()">Reabrir como Administrador</button>
-  </div>
-  <div id="errBanner" class="banner err" style="display:none"></div>
-
-  <!-- BIBLIOTECA -->
-  <section class="view on" id="v-library">
-    <h1>Jogos</h1>
-    <p class="sub">Escolha o jogo, ajuste a rota e clique em <b>Aplicar rotas</b>.</p>
-    <div class="search"><input id="q" placeholder="Pesquisar jogo…" oninput="renderLibrary()"></div>
-    <div class="chips" id="genres"></div>
-    <div class="games" id="games"></div>
-  </section>
-
-  <!-- PÁGINA DO JOGO -->
-  <section class="view" id="v-game">
-    <button class="back" onclick="show('library')">← Voltar para jogos</button>
-    <div class="game-head">
-      <div class="art" id="gArt"></div>
-      <div style="flex:1"><h1 id="gName"></h1><div class="muted" id="gExes"></div></div>
-      <button class="btn" id="gFav" onclick="toggleFav()">☆ Favorito</button>
-    </div>
-    <div class="grid2" style="grid-template-columns: 340px 1fr; align-items:start">
-      <div class="card">
-        <h2>Rota</h2>
-        <div class="opt-label">Região do servidor</div>
-        <select id="gRegion" style="width:100%" onchange="renderManual()"></select>
-        <div class="opt-label">Modo</div>
-        <div class="seg" id="gMode"><button data-v="auto" class="on">Automático</button><button data-v="manual">Manual</button></div>
-        <div id="manualBox" style="display:none">
-          <div class="opt-label">Servidor de saída</div>
-          <table><tbody id="gServers"></tbody></table>
-        </div>
-        <div class="opt-label">Conexões simultâneas (multipath)</div>
-        <div class="seg" id="gConn"><button data-v="1">1</button><button data-v="2" class="on">2</button><button data-v="3">3</button><button data-v="4">4</button></div>
-        <p class="muted" style="font-size:12px;margin:8px 0 0">Mais conexões = menos perda de pacotes, mais uso de banda.</p>
-        <div style="margin-top:20px"><button class="btn big primary" id="gApply" style="width:100%" onclick="applyRoutes()">Aplicar rotas</button></div>
-      </div>
-      <div>
-        <div class="stats">
-          <div class="stat"><div class="l">Ping com NoPingeyson</div><div class="v" id="gPing">—</div></div>
-          <div class="stat"><div class="l">Ping direto</div><div class="v" id="gDirect">—</div></div>
-          <div class="stat"><div class="l">Pacotes salvos</div><div class="v" id="gSaved">0</div></div>
-          <div class="stat"><div class="l">Servidor de saída</div><div class="v" id="gExit" style="font-size:17px">—</div></div>
-        </div>
-        <div class="card"><h2>Latência em tempo real (ms)</h2><canvas id="gChart"></canvas></div>
-        <div class="card" style="margin-top:14px"><h2>Conexões do jogo</h2>
-          <table><thead><tr><th>Servidor do jogo</th><th>Estado</th><th>Caminhos</th><th>↑ / ↓</th></tr></thead><tbody id="gTargets"></tbody></table>
-          <div class="log" id="gEvents" style="margin-top:10px"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- MINHAS ROTAS -->
-  <section class="view" id="v-routes">
-    <h1>Minhas rotas</h1>
-    <p class="sub">Jogos com rotas aplicadas e todos os caminhos medidos.</p>
-    <div class="card" style="margin-bottom:14px"><table><thead><tr><th>Jogo</th><th>Região</th><th>Modo</th><th>Conexões</th><th></th></tr></thead><tbody id="rActive"></tbody></table>
-      <div class="row" style="margin-top:12px"><button class="btn" onclick="measure()">Só medir servidores</button><button class="btn danger" onclick="stopAll()">Parar tudo</button></div>
-    </div>
-    <div class="card"><h2>Caminhos</h2><table><thead><tr><th>Caminho</th><th>Ping</th><th>Jitter</th><th>Perda</th></tr></thead><tbody id="rPaths"></tbody></table></div>
-    <div class="card" style="margin-top:14px"><h2>Registro</h2><div class="log" id="rLog"></div></div>
-  </section>
-
-  <!-- FPS BOOST -->
-  <section class="view" id="v-boost">
-    <h1>FPS Boost</h1>
-    <p class="sub">Ajustes do Windows que costumam liberar FPS e reduzir atrasos. Tudo é salvo antes e volta ao original em “Desfazer tudo”.</p>
-    <div class="card" id="boostList"></div>
-    <div class="row" style="margin-top:14px">
-      <button class="btn big primary" onclick="applyBoost()">Aplicar selecionados</button>
-      <button class="btn big" onclick="restoreBoost()">Desfazer tudo</button>
-    </div>
-    <div class="card" style="margin-top:16px"><h2>Ao aplicar rotas, também</h2><div id="autoBoost"></div></div>
-  </section>
-
-  <!-- TRAFFIC SHAPER -->
-  <section class="view" id="v-shaper">
-    <h1>Traffic Shaper</h1>
-    <p class="sub">Limita a velocidade dos outros programas (downloads, streaming, atualizações) para o jogo não disputar banda. O jogo e as exceções ficam livres.</p>
-    <div class="card">
-      <label class="opt"><input type="checkbox" id="shOn"> <b>Ligar Traffic Shaper</b> <span class="muted">(funciona junto com as rotas de um jogo)</span></label>
-      <div class="opt-label">Limite de download dos outros programas: <b id="shDownV"></b></div>
-      <input type="range" id="shDown" min="0" max="500" step="5" style="width:100%" oninput="shLabels()">
-      <div class="opt-label">Limite de upload dos outros programas: <b id="shUpV"></b></div>
-      <input type="range" id="shUp" min="0" max="200" step="1" style="width:100%" oninput="shLabels()">
-      <div class="opt-label">Exceções (nunca limitar)</div>
-      <div class="chips" id="shExc"></div>
-      <div class="row"><select id="shProc" style="min-width:280px"><option value="">Escolha um programa aberto…</option></select>
-        <button class="btn" onclick="loadShProcs()">Atualizar</button><button class="btn" onclick="addExc()">Adicionar exceção</button></div>
-      <div style="margin-top:16px" class="row"><button class="btn big primary" onclick="saveShaper()">Salvar</button><span class="muted" id="shStats"></span></div>
-    </div>
-  </section>
-
-  <!-- MULTI INTERNET -->
-  <section class="view" id="v-multi">
-    <h1>Multi Internet</h1>
-    <p class="sub">Tem duas conexões (ex.: cabo + Wi‑Fi, ou fibra + 4G)? O NoPingeyson manda o jogo pelas duas ao mesmo tempo. Se uma cair, a outra segura a partida.</p>
-    <div class="card">
-      <label class="opt"><input type="checkbox" id="miOn"> <b>Usar várias conexões</b></label>
-      <table style="margin-top:8px"><thead><tr><th></th><th>Conexão</th><th>IP</th><th>Internet</th><th>Placa</th></tr></thead><tbody id="miList"></tbody></table>
-      <div class="row" style="margin-top:14px"><button class="btn" onclick="loadIfaces()">Atualizar lista</button><button class="btn big primary" onclick="saveMulti()">Salvar</button></div>
-    </div>
-  </section>
-
-  <!-- DIAGNÓSTICO -->
-  <section class="view" id="v-diag">
-    <h1>Diagnóstico</h1>
-    <p class="sub">Teste sua conexão e acompanhe o PC.</p>
-    <div class="grid2">
-      <div class="card"><h2>Teste de ping</h2>
-        <p class="muted">20 pings para cada servidor seu e para DNS públicos.</p>
-        <table><thead><tr><th>Destino</th><th>Média</th><th>Jitter</th><th>Perda</th></tr></thead><tbody id="dPing"></tbody></table>
-        <button class="btn primary" style="margin-top:12px" onclick="runPing(this)">Testar ping</button></div>
-      <div class="card"><h2>Teste de velocidade</h2>
-        <p class="muted">Baixa o arquivo público de teste da OVH por ~8 s (consome alguns MB). Upload ainda não é medido.</p>
-        <div class="row"><div class="stat" style="flex:1"><div class="l">Download</div><div class="v" id="dDown">—</div></div>
-          <div class="stat" style="flex:1"><div class="l">Upload</div><div class="v" id="dUp">—</div></div></div>
-        <button class="btn primary" style="margin-top:12px" onclick="runSpeed(this)">Testar velocidade</button></div>
-    </div>
-    <div class="card" style="margin-top:16px"><h2>Monitor do PC</h2><div class="grid2" id="dDev"></div></div>
-  </section>
-
-  <!-- PEDIR JOGO NOVO -->
-  <section class="view" id="v-request">
-    <h1>Pedir jogo novo</h1>
-    <p class="sub">Jogo não está na lista? Abra o jogo, entre numa partida e clique em <b>Monitorar atividade de rede</b>. Depois escolha o processo do jogo.</p>
-    <div class="card">
-      <button class="btn primary" onclick="monitorNet(this)">Monitorar atividade de rede</button>
-      <table style="margin-top:12px"><thead><tr><th>Processo</th><th>UDP</th><th>TCP</th><th>Servidores</th></tr></thead><tbody id="reqList"><tr><td colspan="4" class="muted">Clique em monitorar.</td></tr></tbody></table>
-      <div class="row" style="margin-top:14px"><input id="reqName" placeholder="Nome do jogo" style="flex:1"><input id="reqExe" placeholder="executavel.exe" style="flex:1">
-        <button class="btn big primary" onclick="addGame()">Adicionar jogo</button></div>
-    </div>
-    <div class="card" style="margin-top:14px"><h2>Jogos adicionados por você</h2><table><tbody id="reqCustom"></tbody></table></div>
-  </section>
-
-  <!-- CONFIGURAÇÕES -->
-  <section class="view" id="v-settings">
-    <h1>Configurações</h1>
-    <p class="sub">Seus servidores (relays) rodam em VPSs suas com <code>python3 -m nopingeyson.relay</code>. Dê a cada um uma região (ex.: São Paulo) para aparecer na escolha de região dos jogos.</p>
-    <div class="card"><h2>Servidores</h2>
-      <table><thead><tr><th>Nome</th><th>Região</th><th>Endereço</th><th>Porta</th><th></th></tr></thead><tbody id="sRelays"></tbody></table>
-      <div class="row" style="margin-top:12px"><input id="rName" placeholder="Nome (SP-1)" style="width:130px"><input id="rRegion" placeholder="Região (São Paulo)" style="width:170px">
-        <input id="rHost" placeholder="IP ou domínio" style="flex:1"><input id="rPort" placeholder="7000" style="width:90px"><button class="btn" onclick="addRelay()">Adicionar</button></div>
-    </div>
-    <div class="card" style="margin-top:14px"><h2>Opções</h2>
-      <label class="opt"><span style="width:200px">Chave compartilhada</span><input id="sKey" type="password" style="flex:1"><button class="btn" onclick="genKey()">Gerar</button><button class="btn" onclick="sKey.type=sKey.type==='password'?'text':'password'">Mostrar</button></label>
-      <label class="opt"><input type="checkbox" id="sTwoHop"> Usar rotas com 2 servidores (entrada → saída)</label>
-      <label class="opt"><input type="checkbox" id="sDirect"> No modo automático, usar conexão direta quando ela for mais rápida</label>
-      <label class="opt"><span style="width:200px">Ganho mínimo para usar rota</span><input id="sGain" style="width:80px"> ms</label>
-    </div>
-    <div style="margin-top:14px"><button class="btn big primary" onclick="saveSettings()">Salvar</button></div>
-  </section>
-</main>
+<div class="modal" id="mPick"><div class="box">
+  <div class="row" style="justify-content:space-between"><h2 style="margin:0">Adicionar jogo</h2><button class="iconbtn" onclick="closeModal('mPick')">✕</button></div>
+  <input class="f" id="pickQ" placeholder="Pesquisar" style="width:100%;margin-top:12px" oninput="renderPicker()">
+  <div class="pickgrid" id="pickList"></div>
+</div></div>
+<div class="modal" id="mReq"><div class="box">
+  <div class="row" style="justify-content:space-between"><h2 style="margin:0">Solicitar jogo</h2><button class="iconbtn" onclick="closeModal('mReq')">✕</button></div>
+  <p class="muted">Abra o jogo, entre numa partida e clique em monitorar. Depois escolha o processo do jogo.</p>
+  <button class="btn primary" onclick="monitorNet(this)">Monitorar atividade de rede</button>
+  <table style="margin-top:10px"><thead><tr><th>Processo</th><th>UDP</th><th>TCP</th><th>Servidores</th></tr></thead><tbody id="reqList"></tbody></table>
+  <div class="row" style="margin-top:12px"><input class="f" id="reqName" placeholder="Nome do jogo" style="flex:1"><input class="f" id="reqExe" placeholder="jogo.exe" style="flex:1"><button class="btn primary" onclick="addGame()">Adicionar</button></div>
+</div></div>
 <div class="toast" id="toast"></div>
 
 <script>
 const $ = id => document.getElementById(id);
 const api = () => pywebview.api;
-let cfg = null, games = [], state = {}, current = null, genre = 'Todos';
-const COLORS = ['#7c5cff','#22d3ee','#f43f5e','#34d399','#fbbf24','#f472b6','#60a5fa','#a3e635','#fb923c'];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ms = v => v == null || v < 0 ? '—' : Math.round(v) + ' ms';
+const COLORS = ['#7c5cff','#22d3ee','#f472b6','#34d399','#fbbf24','#60a5fa','#fb923c','#a3e635'];
+let cfg = {}, lib = [], icons = {}, state = {}, cat = 'Todos', cur = null, gset = null, seenNotes = 0;
+
 function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 3000); }
 function hash(s) { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
-function art(g) {
-  const h = hash(g.name), a = COLORS[h % COLORS.length], b = COLORS[(h >> 4) % COLORS.length];
+function iconHtml(g, style = '') {
+  const ic = icons[g.id];
+  if (ic && (ic.icon || ic.cover)) return `<div class="gameicon" style="${style}"><img src="${ic.icon || ic.cover}" alt=""></div>`;
+  const h = hash(g.name), a = COLORS[h % COLORS.length], b = COLORS[(h >> 3) % COLORS.length];
   const ini = g.name.replace(/[^A-Za-z0-9 ]/g, '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
-  return { style: `background: linear-gradient(135deg, ${a}, ${b === a ? '#0b0d14' : b})`, ini };
+  return `<div class="gameicon" style="background:linear-gradient(135deg,${a},${b});${style}">${esc(ini)}</div>`;
 }
+const gameById = id => lib.find(g => g.id === id);
+const isOn = id => (state.active_games || []).includes(id);
 
-// ---- navegação ----------------------------------------------------------
-function show(view) {
-  document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === 'v-' + view));
-  document.querySelectorAll('aside nav button').forEach(b => b.classList.toggle('on', b.dataset.view === view || (view === 'game' && b.dataset.view === 'library')));
-  if (view === 'multi') loadIfaces();
-  if (view === 'shaper' && !$('shProc').options[1]) loadShProcs();
-  if (view === 'request') renderCustom();
+// ---- navegação ------------------------------------------------------------
+function go(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('on', p.id === 'p-' + page));
+  document.querySelectorAll('#rail button[data-page]').forEach(b => b.classList.toggle('on', b.dataset.page === page));
+  $('main').scrollTop = 0;
+  if (page === 'multi') loadIfaces();
+  if (page === 'limiter') loadProcs();
+  if (page === 'boost') { loadTweaks(); ramGauge(); }
+  if (page === 'servers') renderServers();
+  if (page === 'conns') renderConns();
 }
-document.querySelectorAll('aside nav button').forEach(b => b.onclick = () => show(b.dataset.view));
+document.querySelectorAll('#rail button[data-page]').forEach(b => b.onclick = () => go(b.dataset.page));
+function tabs(id, prefix) {
+  document.querySelectorAll(`#${id} button`).forEach(b => b.onclick = () => {
+    document.querySelectorAll(`#${id} button`).forEach(x => x.classList.toggle('on', x === b));
+    document.querySelectorAll(`[id^="${prefix}-"]`).forEach(t => t.classList.toggle('on', t.id === `${prefix}-${b.dataset.t}`));
+  });
+}
+tabs('anTabs', 'an'); tabs('boostTabs', 'bo');
+const anTab = t => document.querySelector(`#anTabs button[data-t="${t}"]`).click();
+const boostTab = t => document.querySelector(`#boostTabs button[data-t="${t}"]`).click();
+function openModal(id) { $(id).classList.add('on'); } function closeModal(id) { $(id).classList.remove('on'); }
+function toggleBell() { $('bell').classList.toggle('on'); $('bellBadge').style.display = 'none'; seenNotes = (state.notifications || []).length; }
 
-// ---- biblioteca --------------------------------------------------------------
+// ---- topo ------------------------------------------------------------------
+async function togglePower() {
+  cfg.enabled = !cfg.enabled;
+  const r = await api().set_enabled(cfg.enabled); if (r !== 'ok') toast(r);
+  refresh();
+}
+function topSearch(v) { if (!$('p-library').classList.contains('on')) go('library'); $('libSearch').value = v; renderLibrary(); }
+
+// ---- biblioteca -------------------------------------------------------------
+const CATS = ['Todos', 'Jogos', 'Navegador', 'Voz', 'Inicializador', 'Transmissão', 'Emulador'];
+function renderCats() { $('cats').innerHTML = CATS.map(c => `<button class="cat ${c === cat ? 'on' : ''}" onclick="cat='${c}';renderCats();renderLibrary()">${c}</button>`).join(''); }
+function tile(g) {
+  const added = (cfg.connections || []).includes(g.id);
+  return `<div class="tile ${g.installed ? '' : 'off'}" onclick="tileClick('${g.id}')" title="${esc(g.name)}">${added ? '<span class="chk">✓</span>' : ''}${iconHtml(g)}
+    <div class="nm">${esc(g.name)}</div><div class="sub">${g.installed ? esc(g.source || g.category) : 'não instalado'}</div></div>`;
+}
 function renderLibrary() {
-  const q = $('q').value.toLowerCase(), favs = cfg.favorites || [], act = cfg.active_games || [];
-  const genres = ['Todos', 'Favoritos', ...new Set(games.map(g => g.genre))];
-  $('genres').innerHTML = genres.map(x => `<button class="chip ${x === genre ? 'on' : ''}" onclick="genre='${esc(x)}';renderLibrary()">${esc(x)}</button>`).join('');
-  const list = games.filter(g => (!q || g.name.toLowerCase().includes(q) || g.exes.some(e => e.includes(q)))
-    && (genre === 'Todos' || (genre === 'Favoritos' ? favs.includes(g.id) : g.genre === genre)))
-    .sort((a, b) => (act.includes(b.id) - act.includes(a.id)) || (favs.includes(b.id) - favs.includes(a.id)) || a.name.localeCompare(b.name));
-  $('games').innerHTML = list.map(g => { const a = art(g); return `<div class="tile" onclick="openGame('${g.id}')">
-     <div class="art" style="${a.style}">${esc(a.ini)}</div>${act.includes(g.id) ? '<span class="badge">ATIVO</span>' : ''}
-     ${favs.includes(g.id) ? '<span class="fav">★</span>' : ''}<div class="nm">${esc(g.name)}</div><div class="gn">${esc(g.genre)}</div></div>`; }).join('')
-     || '<div class="empty">Nenhum jogo encontrado. Use “Pedir jogo novo”.</div>';
+  const q = ($('libSearch').value || '').toLowerCase(), all = $('libAll').checked;
+  const list = lib.filter(g => (all || g.installed) && (cat === 'Todos' || g.category === cat) && (!q || g.name.toLowerCase().includes(q)))
+                  .sort((a, b) => a.name.localeCompare(b.name, 'pt'));
+  const groups = {};
+  list.forEach(g => { const L = /[a-z]/i.test(g.name[0]) ? g.name[0].toUpperCase() : '#'; (groups[L] = groups[L] || []).push(g); });
+  $('lib').innerHTML = Object.keys(groups).sort().map(L => `<div class="letter" id="L-${L}">${L}</div><div class="lib">${groups[L].map(tile).join('')}</div>`).join('')
+    || `<div class="empty"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><div>Nada encontrado. Use “Solicitar jogo”.</div></div>`;
+  $('az').innerHTML = ['#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(L => `<button class="${groups[L] ? 'has' : ''}" onclick="document.getElementById('L-${L}')?.scrollIntoView({behavior:'smooth'})">${L}</button>`).join('');
+}
+function tileClick(id) { (cfg.connections || []).includes(id) ? openDrawer(id) : addConn(id); }
+async function rescan(btn) { btn.disabled = true; btn.textContent = 'Procurando…'; await loadLibrary(true); btn.disabled = false; btn.textContent = 'Procurar jogos';
+  toast(`${lib.filter(g => g.installed).length} jogos e apps encontrados`); }
+async function loadLibrary(rescan) {
+  lib = await api().library(!!rescan);
+  renderCats(); renderLibrary(); renderHome(); renderConns();
+  const need = lib.filter(g => g.installed && !icons[g.id]).map(g => g.id);
+  for (let i = 0; i < need.length; i += 8) {
+    Object.assign(icons, await api().icons(need.slice(i, i + 8)));
+    renderLibrary(); renderHome(); renderConns();
+  }
 }
 
-// ---- página do jogo ---------------------------------------------------------
-let gset = null;
-async function openGame(id) {
-  current = games.find(g => g.id === id); if (!current) return;
+// ---- início --------------------------------------------------------------------
+function renderHome() {
+  const inst = lib.filter(g => g.installed && g.category === 'Jogos');
+  $('hGames').textContent = inst.length;
+  const run = (state.running_games || []).map(id => gameById(id)?.name).filter(Boolean);
+  $('hRunning').textContent = run.length ? 'Abertos agora: ' + run.join(', ') : 'Nenhum jogo aberto agora';
+  $('homeGames').innerHTML = inst.slice(0, 14).map(tile).join('') || '<div class="empty">Nenhum jogo encontrado ainda.</div>';
+}
+
+// ---- conexões -------------------------------------------------------------------
+function connStatus(id) {
+  if (!isOn(id) || !state.enabled) return ['Desligado', ''];
+  const t = (state.targets || []).find(t => t.game === gameById(id)?.name && t.active);
+  if (state.local_only) return ['Ligado · sem servidores (rota direta)', 'warn'];
+  if (t && t.mode === 'tunneled') return [`Otimizado · ${ms(t.score)} (direto ${ms(t.direct)})`, 'good'];
+  if (t && t.mode === 'direct') return ['Sua rota direta já é a melhor', 'good'];
+  if ((state.running_games || []).includes(id)) return ['Medindo rotas…', 'good'];
+  return ['Pronto · esperando o jogo abrir', 'good'];
+}
+function renderConns() {
+  const cards = (cfg.connections || []).map(id => { const g = gameById(id); if (!g) return ''; const on = isOn(id); const [st, cls] = connStatus(id);
+    return `<div class="conn ${on && state.running ? 'live' : ''}" onclick="openDrawer('${id}')"><button class="x" title="Remover" onclick="event.stopPropagation();removeConn('${id}')">✕</button>
+      ${iconHtml(g)}<div><div class="nm">${esc(g.name)}</div><div class="st ${cls}">${st}</div></div>
+      <div class="foot"><span class="dim" style="font-size:12px">${esc(g.category)}</span><button class="switch ${on ? 'on' : ''}" onclick="event.stopPropagation();toggleConn('${id}')"></button></div></div>`; }).join('');
+  $('conns').innerHTML = cards + `<div class="conn add" onclick="openPicker()"><div class="plus">+</div><div>Adicionar jogo</div></div>`;
+}
+async function addConn(id) { const r = await api().add_connection(id); if (r !== 'ok') toast(r); else toast(`${gameById(id)?.name} adicionado às Conexões`);
+  cfg = await api().get_config(); await refresh(); renderLibrary(); renderConns(); }
+async function removeConn(id) { await api().remove_connection(id); cfg = await api().get_config(); await refresh(); renderConns(); renderLibrary(); }
+async function toggleConn(id) { const r = isOn(id) ? await api().stop_routes(id) : await api().apply_routes(id, null); if (r !== 'ok') toast(r);
+  cfg = await api().get_config(); await refresh(); renderConns(); }
+function openPicker() { $('pickQ').value = ''; renderPicker(); openModal('mPick'); }
+function renderPicker() {
+  const q = $('pickQ').value.toLowerCase();
+  $('pickList').innerHTML = lib.filter(g => g.installed && !(cfg.connections || []).includes(g.id) && (!q || g.name.toLowerCase().includes(q)))
+    .map(g => `<div class="pick" onclick="closeModal('mPick');addConn('${g.id}')">${iconHtml(g, 'width:40px;height:40px')}<div><b>${esc(g.name)}</b><div class="dim" style="font-size:12px">${esc(g.category)}</div></div></div>`).join('')
+    || '<div class="muted">Todos os jogos encontrados já estão nas Conexões.</div>';
+}
+
+// ---- gaveta do jogo ---------------------------------------------------------------
+async function openDrawer(id) {
+  cur = gameById(id); if (!cur) return;
   gset = await api().game_settings(id);
-  const a = art(current);
-  $('gArt').style.cssText = a.style; $('gArt').textContent = a.ini;
-  $('gName').textContent = current.name; $('gExes').textContent = current.exes.join(' · ');
-  $('gFav').textContent = (cfg.favorites || []).includes(id) ? '★ Favorito' : '☆ Favorito';
-  const regions = [...new Set(cfg.relays.map(r => r.region).filter(Boolean))];
-  $('gRegion').innerHTML = '<option value="auto">Automático (recomendado)</option>' + regions.map(r => `<option ${gset.region === r ? 'selected' : ''}>${esc(r)}</option>`).join('');
-  setSeg('gMode', gset.mode); setSeg('gConn', String(gset.connections));
-  renderManual(); renderGame(); show('game');
+  const ic = icons[id] || {};
+  $('dHero').style.backgroundImage = ic.hero || ic.cover ? `url(${ic.hero || ic.cover})` : 'linear-gradient(120deg,#3b2a8f,#0ea5b7)';
+  $('dIconWrap').innerHTML = iconHtml(cur, 'width:64px;height:64px;border:3px solid var(--rail)');
+  $('dName').textContent = cur.name; $('dSub').textContent = cur.exes.join(' · ');
+  const regions = [...new Set((cfg.servers || []).map(s => s.region).filter(Boolean))];
+  $('dRegion').innerHTML = '<option value="auto">Automático (recomendado)</option>' + regions.map(r => `<option ${gset.region === r ? 'selected' : ''}>${esc(r)}</option>`).join('');
+  $('dExit').innerHTML = (cfg.servers || []).map(s => `<option ${gset.exit === s.name ? 'selected' : ''}>${esc(s.name)}</option>`).join('') || '<option value="">Sem servidores</option>';
+  setSeg('dMode', gset.mode); setSeg('dConn', String(gset.connections)); $('dManual').style.display = gset.mode === 'manual' ? 'block' : 'none';
+  renderDrawer(); $('shade').classList.add('on'); $('drawer').classList.add('on');
 }
+function closeDrawer() { $('shade').classList.remove('on'); $('drawer').classList.remove('on'); cur = null; }
 function setSeg(id, v) { document.querySelectorAll(`#${id} button`).forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
-function segVal(id) { return document.querySelector(`#${id} button.on`)?.dataset.v; }
-document.querySelectorAll('.seg').forEach(s => s.addEventListener('click', e => {
-  if (e.target.dataset.v) { setSeg(s.id, e.target.dataset.v); if (s.id === 'gMode') renderManual(); }
-}));
-function renderManual() {
-  $('manualBox').style.display = segVal('gMode') === 'manual' ? 'block' : 'none';
-  const region = $('gRegion').value, paths = state.paths || [];
-  const relays = cfg.relays.filter(r => region === 'auto' || r.region === region);
-  if (gset && !relays.some(r => r.name === gset.exit)) gset.exit = relays[0]?.name || null;
-  $('gServers').innerHTML = relays.map(r => { const p = paths.find(p => p.label === r.name || p.label.endsWith('] ' + r.name));
-    return `<tr class="pick ${gset && gset.exit === r.name ? 'sel' : ''}" onclick="gset.exit='${esc(r.name)}';renderManual()">
-    <td><span class="dot ${p && p.alive ? 'on' : 'off'}"></span> ${esc(r.name)}</td><td class="muted">${esc(r.region || '')}</td><td>${ms(p && p.rtt)}</td></tr>`; }).join('')
-    || '<tr><td class="muted">Nenhum servidor nessa região.</td></tr>';
+const segVal = id => document.querySelector(`#${id} button.on`)?.dataset.v;
+document.querySelectorAll('.seg').forEach(s => s.addEventListener('click', e => { if (e.target.dataset.v) { setSeg(s.id, e.target.dataset.v);
+  $('dManual').style.display = segVal('dMode') === 'manual' ? 'block' : 'none'; drawerSave(); } }));
+async function drawerSave() {
+  if (!cur) return;
+  const s = { region: $('dRegion').value, mode: segVal('dMode'), exit: $('dExit').value || null, connections: parseInt(segVal('dConn')) };
+  if (isOn(cur.id)) await api().apply_routes(cur.id, s);
+  else { cfg.game_settings = cfg.game_settings || {}; cfg.game_settings[cur.id] = s; await api().save_config({ game_settings: cfg.game_settings }); }
 }
-async function applyRoutes() {
-  const active = (state.active_games || []).includes(current.id);
-  const b = $('gApply'); b.disabled = true;
-  const r = active ? await api().stop_routes(current.id)
-    : await api().apply_routes(current.id, { region: $('gRegion').value, mode: segVal('gMode'), exit: gset.exit, connections: parseInt(segVal('gConn')) });
-  b.disabled = false;
-  if (r !== 'ok') toast(r); else toast(active ? 'Rotas paradas' : 'Rotas aplicadas! Abra o jogo normalmente.');
-  cfg = await api().get_config(); refresh();
-}
-async function toggleFav() { cfg.favorites = await api().toggle_favorite(current.id); openGame(current.id); renderLibrary(); }
-function renderGame() {
-  if (!current) return;
-  const active = (state.active_games || []).includes(current.id);
-  const b = $('gApply'); b.textContent = active ? 'Parar rotas' : 'Aplicar rotas'; b.className = 'btn big ' + (active ? 'danger' : 'primary');
-  const targets = (state.targets || []).filter(t => t.game === current.name);
-  const t = targets.find(t => t.mode === 'tunneled' && t.active) || targets[0];
-  $('gPing').textContent = t && t.mode === 'tunneled' ? ms(t.score) : '—';
-  $('gDirect').textContent = t ? ms(t.direct) : '—';
-  $('gSaved').textContent = targets.reduce((s, t) => s + t.recovered, 0);
-  $('gExit').textContent = t?.exit || (active ? 'aguardando jogo…' : '—');
-  $('gTargets').innerHTML = targets.map(t => `<tr><td>${esc(t.ip)}</td><td>${{tunneled:'<span class="good">otimizado</span>',direct:'direto',queued:'medindo…'}[t.mode]}</td>
-     <td>${esc(t.paths.join(' | ') || '—')}</td><td>${t.up} / ${t.down}</td></tr>`).join('')
-     || `<tr><td colspan="4" class="muted">${active ? 'Rotas aplicadas. Entre numa partida para ver as conexões.' : 'Aplique as rotas para começar.'}</td></tr>`;
-  $('gEvents').textContent = targets.flatMap(t => t.events).sort((a, b) => b.t - a.t).map(e => `${new Date(e.t * 1000).toLocaleTimeString()}  ${e.msg}`).join('\n');
+async function drawerToggle() { await toggleConn(cur.id); renderDrawer(); }
+async function launchGame() { const r = await api().launch_game(cur.id); toast(r === 'ok' ? 'Abrindo o jogo…' : r); }
+function renderDrawer() {
+  if (!cur) return;
+  $('dSw').className = 'switch ' + (isOn(cur.id) ? 'on' : '');
+  const ts = (state.targets || []).filter(t => t.game === cur.name), t = ts.find(t => t.mode === 'tunneled' && t.active) || ts[0];
+  $('dPing').textContent = t && t.mode === 'tunneled' ? ms(t.score) : '—';
+  $('dDirect').textContent = t ? ms(t.direct) : '—';
+  $('dSaved').textContent = ts.reduce((s, t) => s + t.recovered, 0);
+  $('dLog').textContent = ts.flatMap(t => t.events).sort((a, b) => b.t - a.t).map(e => `${new Date(e.t * 1000).toLocaleTimeString()}  ${e.msg}`).join('\n')
+    || (state.has_servers ? 'Abra o jogo e entre numa partida para ver a rota.' : 'Sem servidores: o jogo segue pela rota normal da sua internet.');
   const labels = t && t.paths.length ? t.paths : null;
-  drawChart($('gChart'), (state.paths || []).filter(p => labels ? labels.includes(p.label) : p.label.split('→').length === 1));
+  drawChart($('dChart'), (state.paths || []).filter(p => labels ? labels.includes(p.label) : p.label.split('→').length === 1).map(p => ({ label: p.label, data: p.history })));
 }
 
-function drawChart(c, paths) {
+function drawChart(c, series) {
   const dpr = window.devicePixelRatio || 1; c.width = c.clientWidth * dpr; c.height = c.clientHeight * dpr;
   const g = c.getContext('2d'); g.scale(dpr, dpr);
-  const W = c.clientWidth, H = c.clientHeight, L = 32, T = 10;
-  const shown = paths.filter(p => p.history.length).slice(0, 6), all = shown.flatMap(p => p.history);
+  const W = c.clientWidth, H = c.clientHeight, L = 34, T = 8;
+  const shown = series.filter(s => s.data.length).slice(0, 6), all = shown.flatMap(s => s.data);
   g.clearRect(0, 0, W, H); g.font = '11px Segoe UI';
-  if (!all.length) { g.fillStyle = '#8890a6'; g.fillText('Sem medições ainda.', L, H / 2); return; }
-  const max = Math.max(10, ...all) * 1.15;
-  for (let i = 0; i <= 4; i++) { const y = T + (H - T - 6) * i / 4; g.strokeStyle = '#262c40'; g.beginPath(); g.moveTo(L, y); g.lineTo(W, y); g.stroke();
-    g.fillStyle = '#8890a6'; g.fillText((max * (1 - i / 4)).toFixed(0), 2, y + 4); }
-  shown.forEach((p, k) => { const col = COLORS[k % COLORS.length]; g.strokeStyle = col; g.lineWidth = 2; g.beginPath();
-    p.history.forEach((v, i) => { const x = L + (W - L) * i / 59, y = T + (H - T - 6) * (1 - v / max); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
-    g.fillStyle = col; g.fillText(p.label, W - 170, 16 + k * 14); });
+  if (!all.length) { g.fillStyle = '#5d6479'; g.fillText('Sem dados ainda.', L, H / 2); return; }
+  const max = Math.max(1, ...all) * 1.2;
+  for (let i = 0; i <= 3; i++) { const y = T + (H - T - 8) * i / 3; g.strokeStyle = '#242a3b'; g.beginPath(); g.moveTo(L, y); g.lineTo(W, y); g.stroke();
+    g.fillStyle = '#5d6479'; g.fillText((max * (1 - i / 3)).toFixed(max < 10 ? 1 : 0), 2, y + 4); }
+  shown.forEach((s, k) => { const col = COLORS[k % COLORS.length], n = Math.max(s.data.length, 30);
+    const pts = s.data.map((v, i) => [L + (W - L) * i / (n - 1), T + (H - T - 8) * (1 - v / max)]);
+    if (k === 0) { const grad = g.createLinearGradient(0, T, 0, H); grad.addColorStop(0, col + '55'); grad.addColorStop(1, col + '00');
+      g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.lineTo(pts[pts.length - 1][0], H - 8); g.lineTo(L, H - 8); g.fillStyle = grad; g.fill(); }
+    g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.strokeStyle = col; g.lineWidth = 2; g.stroke();
+    g.fillStyle = col; g.fillText(s.label, W - 150, 14 + k * 14); });
 }
 
-// ---- estado periódico -----------------------------------------------------
+// ---- estado periódico -----------------------------------------------------------
 async function refresh() {
   state = await api().get_state();
-  $('adminBanner').style.display = state.admin ? 'none' : 'flex';
-  $('errBanner').style.display = state.error ? 'flex' : 'none'; $('errBanner').textContent = state.error || '';
-  const act = state.active_games || [];
-  $('sideDot').className = 'dot ' + (state.running ? 'on' : '');
-  $('sideStatus').textContent = state.running ? (state.measure_only ? 'Medindo' : 'Otimizando') : 'Parado';
-  $('sideInfo').textContent = act.length ? act.map(id => games.find(g => g.id === id)?.name || id).join(', ') : 'Nenhuma rota aplicada';
-  if ($('v-game').classList.contains('on')) { renderGame(); if (segVal('gMode') === 'manual') renderManual(); }
-  if ($('v-routes').classList.contains('on')) renderRoutes();
-  if ($('v-library').classList.contains('on') && JSON.stringify(act) !== JSON.stringify(cfg.active_games)) { cfg.active_games = act; renderLibrary(); }
-  renderBoost(state.boost || {});
-  if (state.shaper) $('shStats').textContent = `livres ${state.shaper.passed} · limitados ${state.shaper.limited} · descartados ${state.shaper.dropped}`;
-}
-function renderRoutes() {
-  const act = state.active_games || [];
-  $('rActive').innerHTML = act.map(id => { const g = games.find(g => g.id === id) || {name: id}; const s = (cfg.game_settings || {})[id] || {};
-    return `<tr><td>${esc(g.name)}</td><td>${esc(s.region === 'auto' || !s.region ? 'Automático' : s.region)}</td><td>${s.mode === 'manual' ? 'Manual (' + esc(s.exit) + ')' : 'Automático'}</td>
-    <td>${s.connections || 2}</td><td><button class="btn" onclick="openGame('${id}')">Abrir</button></td></tr>`; }).join('') || '<tr><td colspan="5" class="muted">Nenhuma rota aplicada.</td></tr>';
-  $('rPaths').innerHTML = (state.paths || []).map(p => `<tr><td><span class="dot ${p.alive ? 'on' : 'off'}"></span> ${esc(p.label)}</td><td>${ms(p.rtt)}</td><td>${p.jitter.toFixed(1)} ms</td><td>${p.loss.toFixed(0)}%</td></tr>`).join('')
-    || '<tr><td colspan="4" class="muted">Sem medições.</td></tr>';
-  $('rLog').textContent = (state.logs || []).slice().reverse().map(l => `${new Date(l.t * 1000).toLocaleTimeString()}  ${l.msg}`).join('\n');
-}
-async function measure() { const r = await api().measure(); if (r !== 'ok') toast(r); refresh(); }
-async function stopAll() { await api().stop_all(); cfg = await api().get_config(); renderLibrary(); refresh(); }
-
-// ---- FPS Boost ----------------------------------------------------------------
-let boostDone = false;
-function renderBoost(b) {
-  if (!boostDone && Object.keys(b).length) {
-    $('boostList').innerHTML = Object.entries(b).filter(([k]) => !['timer', 'priority'].includes(k)).map(([k, v]) =>
-      `<label class="opt"><input type="checkbox" value="${k}"><span style="flex:1">${esc(v.label)}${v.reboot ? ' <span class="muted">(reiniciar o PC)</span>' : ''}</span><span id="bs-${k}"></span></label>`).join('');
-    boostDone = true;
-  }
-  for (const [k, v] of Object.entries(b)) { const s = $('bs-' + k); if (s) s.innerHTML = v.applied ? '<span class="good">✓ aplicado</span>' : '<span class="muted">original</span>'; }
-}
-function renderAuto() {
-  const labels = { timer: 'Timer do Windows em 1 ms', priority: 'Prioridade alta para o jogo (abre o processo do jogo: deixe desligado em jogos com anti-cheat em modo kernel)', power: 'Plano de energia Alto desempenho', gamemode: 'Modo de Jogo do Windows' };
-  $('autoBoost').innerHTML = Object.entries(labels).map(([k, l]) => `<label class="opt"><input type="checkbox" value="${k}" ${(cfg.auto_boost || []).includes(k) ? 'checked' : ''} onchange="saveAuto()"> ${l}</label>`).join('');
-}
-async function saveAuto() { cfg.auto_boost = [...document.querySelectorAll('#autoBoost input:checked')].map(i => i.value); await api().save_config({ auto_boost: cfg.auto_boost }); }
-async function applyBoost() {
-  const sel = [...document.querySelectorAll('#boostList input:checked')].map(i => i.value);
-  if (!sel.length) return toast('Selecione pelo menos um ajuste');
-  const r = await api().boost_apply(sel); const bad = Object.entries(r).filter(([, v]) => v !== 'ok');
-  toast(bad.length ? bad.map(([k, v]) => `${k}: ${v}`).join(' · ') : 'FPS Boost aplicado'); refresh();
-}
-async function restoreBoost() { const r = await api().boost_restore(); toast(Object.keys(r).length ? 'Tudo voltou ao original' : 'Nada para desfazer'); refresh(); }
-
-// ---- Traffic Shaper -------------------------------------------------------------
-let shExc = [];
-function fmtRate(v, max) { return v == 0 ? 'sem limite' : v + ' Mbps'; }
-function shLabels() { $('shDownV').textContent = fmtRate($('shDown').value); $('shUpV').textContent = fmtRate($('shUp').value); }
-function renderShaper() {
-  const s = cfg.shaper || {}; $('shOn').checked = !!s.enabled;
-  $('shDown').value = Math.round((s.download_kbps || 0) / 1000); $('shUp').value = Math.round((s.upload_kbps || 0) / 1000);
-  shExc = [...(s.exceptions || [])]; renderExc(); shLabels();
-}
-function renderExc() { $('shExc').innerHTML = shExc.map((e, i) => `<span class="chip on">${esc(e)} <a style="cursor:pointer" onclick="shExc.splice(${i},1);renderExc()">×</a></span>`).join('') || '<span class="muted">Nenhuma (ex.: discord.exe)</span>'; }
-async function loadShProcs() { const list = await api().network_activity();
-  $('shProc').innerHTML = '<option value="">Escolha um programa aberto…</option>' + list.map(p => `<option>${esc(p.name)}</option>`).join(''); }
-function addExc() { const v = $('shProc').value; if (v && !shExc.includes(v)) shExc.push(v); renderExc(); }
-async function saveShaper() {
-  const s = { enabled: $('shOn').checked, download_kbps: $('shDown').value * 1000, upload_kbps: $('shUp').value * 1000, exceptions: shExc };
-  const r = await api().shaper_save(s); cfg.shaper = s; toast(r === 'ok' ? 'Traffic Shaper salvo' : r);
+  cfg.enabled = state.enabled;
+  $('ver').textContent = 'v' + state.version;
+  $('adminBanner').style.display = state.admin ? 'none' : 'block';
+  $('powerSw').className = 'switch ' + (state.enabled ? 'on' : ''); $('powerTxt').textContent = state.enabled ? 'ON' : 'OFF';
+  const n = (state.active_games || []).length;
+  let txt = 'Pronto', cls = '';
+  if (!state.enabled) txt = 'Desligado';
+  else if (state.running && state.local_only) { txt = 'Ligado · sem servidores'; cls = 'warn'; }
+  else if (state.running) { txt = `Otimizando ${n} ${n === 1 ? 'jogo' : 'jogos'}`; cls = 'good'; }
+  $('topStatus').className = 'pill ' + cls; $('topStatus').innerHTML = `<span class="dot ${state.running && state.enabled ? 'on' : ''}"></span> ${txt}`;
+  $('hStatus').textContent = txt;
+  $('hStatusSub').textContent = state.has_servers ? 'Servidores NoPingeyson disponíveis' : 'Sem servidores: PC Boost, limitador e analisador funcionam; o ping não muda';
+  const notes = state.notifications || [];
+  $('bell').innerHTML = notes.map(x => `<div class="note"><span class="${x.kind === 'good' ? 'good' : ''}">${esc(x.msg)}</span><small>${new Date(x.t * 1000).toLocaleTimeString()}</small></div>`).join('') || '<div class="note muted">Nenhuma notificação.</div>';
+  if (notes.length > seenNotes && !$('bell').classList.contains('on')) $('bellBadge').style.display = 'block';
+  if ($('p-conns').classList.contains('on')) renderConns();
+  if ($('p-home').classList.contains('on')) renderHome();
+  if (cur) renderDrawer();
+  if ($('p-servers').classList.contains('on')) renderServers();
+  if ($('p-analyzer').classList.contains('on')) renderLiveTargets();
+  $('miPower').className = 'bigpower ' + ((cfg.multi_internet || {}).enabled ? 'on' : '');
+  $('shPower').className = 'bigpower ' + (state.shaper ? 'on' : '');
+  $('shState').innerHTML = state.shaper ? '<span class="good">Ligado</span>' : 'Desligado';
+  $('shStats').textContent = state.shaper ? `Pacotes: ${state.shaper.passed} livres · ${state.shaper.limited} limitados · ${state.shaper.dropped} segurados` : '';
 }
 
-// ---- Multi Internet -------------------------------------------------------------
+// ---- servidores ------------------------------------------------------------------
+function renderServers() {
+  const s = cfg.servers || [];
+  $('srvBox').innerHTML = s.length ? `<div class="grid3">${s.map(x => { const p = (state.paths || []).find(p => p.label === x.name);
+      return `<div class="card"><div class="row" style="gap:8px"><span class="dot ${p && p.alive ? 'on' : ''}"></span><b>${esc(x.name)}</b></div><div class="muted">${esc(x.region || '')}</div>
+      <div style="font-size:22px;font-weight:700;margin-top:6px">${ms(p && p.rtt)}</div></div>`; }).join('')}</div>`
+    : `<div class="infobox"><b>Ainda não há servidores no NoPingeyson.</b><br><span class="muted">Sem servidores, a redução de ping não funciona: ela depende de levar o jogo por um servidor bem posicionado. O resto do programa funciona normalmente. Os servidores entram numa próxima versão, sem você precisar configurar nada.</span></div>`;
+  $('srvPaths').innerHTML = (state.paths || []).map(p => `<tr><td><span class="dot ${p.alive ? 'on' : 'off'}"></span> ${esc(p.label)}</td><td>${ms(p.rtt)}</td><td>${p.jitter.toFixed(1)} ms</td><td>${p.loss.toFixed(0)}%</td></tr>`).join('')
+    || '<tr><td colspan="4" class="muted">Sem medições (otimização desligada ou sem servidores).</td></tr>';
+}
+
+// ---- analisador ---------------------------------------------------------------------
+let lastNet = null; const netHist = { down: [], up: [] };
+async function liveTick() {
+  const d = await api().device_monitor(), now = Date.now();
+  $('hRam').textContent = `${d.ram_used} / ${d.ram_total} GB`; $('hRamBar').style.width = d.ram_percent + '%';
+  if (lastNet) { const dt = (now - lastNet.t) / 1000, down = (d.net_recv - lastNet.r) * 8 / dt / 1e6, up = (d.net_sent - lastNet.s) * 8 / dt / 1e6;
+    netHist.down.push(+down.toFixed(2)); netHist.up.push(+up.toFixed(2)); if (netHist.down.length > 60) { netHist.down.shift(); netHist.up.shift(); }
+    $('liveDown').textContent = down.toFixed(1) + ' Mbps'; $('liveUp').textContent = up.toFixed(1) + ' Mbps'; }
+  lastNet = { t: now, r: d.net_recv, s: d.net_sent }; $('liveCpu').textContent = d.cpu.toFixed(0) + '%';
+  if ($('p-analyzer').classList.contains('on') && $('an-live').classList.contains('on')) drawChart($('liveChart'), [{ label: 'Download', data: netHist.down }, { label: 'Upload', data: netHist.up }]);
+  $('devOut').innerHTML = `Processador: <b>${d.cpu.toFixed(0)}%</b> (${d.cpu_count} núcleos)<br>Memória: <b>${d.ram_used} / ${d.ram_total} GB</b><br>Wi‑Fi: <b>${d.wifi ? esc(d.wifi.ssid) + ' · ' + d.wifi.signal + '%' : 'cabo'}</b><br>Bateria: <b>${d.battery ? d.battery.percent + '%' : 'sem bateria'}</b>`;
+}
+function renderLiveTargets() {
+  $('liveTargets').innerHTML = (state.targets || []).map(t => `<tr><td>${esc(t.game || '—')}</td><td>${esc(t.ip)}</td><td>${{tunneled:'<span class="good">otimizado</span>',direct:'direto',queued:'medindo'}[t.mode]}</td>
+    <td>${ms(t.score)}</td><td>${ms(t.direct)}</td><td>${t.recovered}</td></tr>`).join('') || '<tr><td colspan="6" class="muted">Nenhum jogo conectado agora.</td></tr>';
+}
+async function runTrace(btn) { btn.disabled = true; $('trOut').innerHTML = '<tr><td colspan="4" class="muted">Rastreando… (até 1 min)</td></tr>';
+  const r = await api().traceroute($('trHost').value); btn.disabled = false;
+  $('trOut').innerHTML = r.map(h => `<tr><td>${h.hop}</td><td>${esc(h.ip)}</td><td>${ms(h.ms)}</td><td class="${h.loss ? 'warn' : ''}">${h.loss}%</td></tr>`).join('') || '<tr><td colspan="4" class="muted">Sem resposta.</td></tr>'; }
+async function runRegions(btn) { if (btn) btn.disabled = true; $('regOut').innerHTML = '<tr><td colspan="3" class="muted">Testando…</td></tr>';
+  const r = await api().region_ping(); if (btn) btn.disabled = false; const best = r[0]?.ms || 1;
+  $('regOut').innerHTML = r.map(x => `<tr><td>${esc(x.region)}</td><td><b>${ms(x.ms)}</b></td><td style="width:45%"><div class="meter"><div style="width:${x.ms ? Math.max(4, 100 * best / x.ms) : 0}%"></div></div></td></tr>`).join(''); }
+async function runSpeed(btn) { btn.disabled = true; $('spDown').textContent = '…'; const r = await api().speed_test(); btn.disabled = false;
+  $('spDown').textContent = r.download_mbps != null ? r.download_mbps + ' Mbps' : 'erro'; if (r.error) toast(r.error); }
+async function runPing(btn) { btn.disabled = true; $('pgOut').innerHTML = '<tr><td class="muted">Testando… (~25 s)</td></tr>';
+  const r = await api().ping_test(['1.1.1.1', '8.8.8.8']); btn.disabled = false;
+  $('pgOut').innerHTML = r.map(x => `<tr><td>${esc(x.host)}</td><td>${x.ok ? ms(x.avg) : 'sem resposta'}</td><td>±${x.jitter ?? '—'} ms</td><td>${x.loss}% perda</td></tr>`).join(''); }
+async function flushDns() { toast((await api().flush_dns()) === 'ok' ? 'Cache de DNS limpo' : 'Não foi possível limpar'); }
+
+// ---- PC Boost ------------------------------------------------------------------------
+const TW_DESC = { power: 'Processador sempre no máximo', throttling: 'Rede sem limite para jogos', gamedvr: 'Menos uso de GPU em segundo plano', nagle: 'Pacotes TCP saem na hora',
+  gamemode: 'Windows prioriza o jogo', visualfx: 'Animações do Windows desligadas', bgapps: 'Apps da loja não rodam escondidos', mouse: 'Mira mais precisa', hags: 'A GPU agenda o próprio trabalho' };
+const ALTO = ['bgapps', 'gamedvr', 'gamemode', 'nagle', 'power', 'throttling'];
+async function loadTweaks() {
+  const b = await api().boost_status();
+  $('tweaks').innerHTML = Object.entries(b).filter(([k]) => !['timer', 'priority'].includes(k)).map(([k, v]) =>
+    `<div class="tgl"><div class="t"><b>${esc(v.label)}</b><small>${TW_DESC[k] || ''}${v.reboot ? ' · pode pedir reinício' : ''}</small></div><button class="switch ${v.applied ? 'on' : ''}" onclick="tweak('${k}', this)"></button></div>`).join('');
+  const applied = Object.entries(b).filter(([k, v]) => v.applied && !['timer', 'priority'].includes(k)).map(([k]) => k).sort().join();
+  markPreset(!applied ? 'padrao' : applied === ALTO.join() ? 'alto' : 'custom');
+}
+function markPreset(p) { document.querySelectorAll('.preset').forEach(x => x.classList.toggle('on', x.dataset.p === p)); }
+async function preset(p) { markPreset(p); await api().boost_preset(p); toast(p === 'padrao' ? 'Windows de volta ao padrão' : 'Alto desempenho aplicado'); loadTweaks(); }
+async function tweak(k, el) { const on = !el.classList.contains('on'); el.classList.toggle('on', on); const r = await api().boost_toggle(k, on); if (r !== 'ok') toast(r); loadTweaks(); }
+async function ramGauge() { const m = await api().memory(); $('ramPct').textContent = m.percent.toFixed(0) + '%'; $('ramTxt').textContent = `${m.used} de ${m.total} GB`;
+  $('ramGauge').style.background = `conic-gradient(#7c5cff 0deg, #22d3ee ${m.percent * 3.6}deg, #232838 ${m.percent * 3.6}deg)`; }
+async function cleanRam(btn) { btn.disabled = true; btn.textContent = 'Limpando…'; const r = await api().clean_ram(); btn.disabled = false; btn.textContent = 'Limpar memória';
+  $('ramRes').textContent = `${r.freed_mb} MB liberados de ${r.processes} programas${r.standby_purged ? ' + memória em espera' : ''}.`; ramGauge(); }
+async function dnsBench(btn) { btn.disabled = true; $('dnsOut').innerHTML = '<tr><td colspan="4" class="muted">Testando… (~10 s)</td></tr>'; const r = await api().dns_benchmark(); btn.disabled = false;
+  $('dnsOut').innerHTML = r.map((x, i) => `<tr><td>${i === 0 && x.ms ? '<span class="pill good">mais rápido</span> ' : ''}${esc(x.name)}</td><td class="dim">${esc(x.primary)} ${esc(x.secondary)}</td><td><b>${ms(x.ms)}</b></td>
+    <td>${x.secondary ? `<button class="btn" onclick="dnsApply('${x.primary}','${x.secondary}')">Usar</button>` : ''}</td></tr>`).join(''); }
+async function dnsApply(a, b) { const r = await api().dns_apply(a, b); toast(r === 'ok' ? 'DNS aplicado' : r); }
+async function dnsRestore() { await api().dns_restore(); toast('DNS de volta ao automático'); }
+
+// ---- Multi Internet / Limitador -----------------------------------------------------------
 async function loadIfaces() {
-  const mi = cfg.multi_internet || {}; $('miOn').checked = !!mi.enabled;
-  $('miList').innerHTML = '<tr><td colspan="5" class="muted">Procurando conexões…</td></tr>';
+  const mi = cfg.multi_internet || {}; $('miList').innerHTML = '<tr><td colspan="5" class="muted">Procurando…</td></tr>';
   const list = await api().list_interfaces();
-  $('miList').innerHTML = list.map(i => `<tr><td><input type="checkbox" value="${esc(i.name)}" ${(mi.interfaces || []).includes(i.name) ? 'checked' : ''}></td>
-    <td>${esc(i.name)}</td><td>${esc(i.ip)}</td><td>${i.gateway ? '<span class="good">sim</span>' : '<span class="muted">não</span>'}</td><td class="muted">${esc(i.desc)}</td></tr>`).join('')
-    || '<tr><td colspan="5" class="muted">Nenhuma conexão encontrada.</td></tr>';
+  $('miList').innerHTML = list.map(i => `<tr><td><input type="checkbox" value="${esc(i.name)}" ${(mi.interfaces || []).includes(i.name) || (!(mi.interfaces || []).length && i.gateway) ? 'checked' : ''}></td>
+    <td>${esc(i.name)}</td><td>${esc(i.ip)}</td><td>${i.gateway ? '<span class="good">sim</span>' : 'não'}</td><td class="dim">${esc(i.desc)}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">Nenhuma conexão ativa.</td></tr>';
+  $('miState').innerHTML = mi.enabled ? '<span class="good">Ligado</span>' : (list.filter(i => i.gateway).length < 2 ? 'Conecte uma segunda internet (Wi‑Fi, cabo ou celular) para usar' : 'Desligado');
 }
-async function saveMulti() {
-  const sel = [...document.querySelectorAll('#miList input:checked')].map(i => i.value);
-  if ($('miOn').checked && sel.length < 2) return toast('Marque pelo menos 2 conexões com internet');
-  cfg.multi_internet = { enabled: $('miOn').checked, interfaces: sel };
-  toast(await api().save_config({ multi_internet: cfg.multi_internet }, true));
+async function toggleMulti() {
+  const sel = [...document.querySelectorAll('#miList input:checked')].map(i => i.value), on = !(cfg.multi_internet || {}).enabled;
+  if (on && sel.length < 2) return toast('Precisa de pelo menos 2 conexões com internet');
+  cfg.multi_internet = { enabled: on, interfaces: sel }; toast(await api().save_config({ multi_internet: cfg.multi_internet }, true)); loadIfaces(); refresh();
 }
+let shExc = [];
+const fmtRate = v => v == 0 ? 'sem limite' : v + ' Mbps';
+function shLabels() { $('shDownV').textContent = fmtRate($('shDown').value); $('shUpV').textContent = fmtRate($('shUp').value); }
+function renderShaper() { const s = cfg.shaper || {}; $('shDown').value = Math.round((s.download_kbps || 20000) / 1000); $('shUp').value = Math.round((s.upload_kbps || 5000) / 1000);
+  shExc = [...(s.exceptions && s.exceptions.length ? s.exceptions : ['discord.exe'])]; renderExc(); shLabels(); }
+function renderExc() { $('shExc').innerHTML = shExc.map((e, i) => `<span class="cat on">${esc(e)} <a style="cursor:pointer" onclick="shExc.splice(${i},1);renderExc();saveShaper()">✕</a></span>`).join(''); }
+async function loadProcs() { const list = await api().network_activity(); $('shProc').innerHTML = '<option value="">Programa aberto…</option>' + list.map(p => `<option>${esc(p.name)}</option>`).join(''); }
+function addExc() { const v = $('shProc').value; if (v && !shExc.includes(v)) { shExc.push(v); renderExc(); saveShaper(); } }
+async function saveShaper(enabled) {
+  const s = { enabled: enabled ?? !!state.shaper, download_kbps: $('shDown').value * 1000, upload_kbps: $('shUp').value * 1000, exceptions: shExc };
+  cfg.shaper = s; const r = await api().shaper_save(s); if (r !== 'ok') toast(r); refresh();
+}
+function toggleShaper() { saveShaper(!state.shaper); }
 
-// ---- Diagnóstico ---------------------------------------------------------------
-async function runPing(btn) {
-  btn.disabled = true; $('dPing').innerHTML = '<tr><td colspan="4" class="muted">Testando… (~25 s)</td></tr>';
-  const hosts = [...cfg.relays.map(r => r.host), '1.1.1.1', '8.8.8.8'];
-  const res = await api().ping_test(hosts); btn.disabled = false;
-  $('dPing').innerHTML = res.map(r => `<tr><td>${esc(cfg.relays.find(x => x.host === r.host)?.name || r.host)}</td><td>${r.ok ? ms(r.avg) : '<span class="bad">sem resposta</span>'}</td>
-    <td>${r.ok ? r.jitter + ' ms' : '—'}</td><td class="${r.loss > 0 ? 'warn' : ''}">${r.loss}%</td></tr>`).join('');
-}
-async function runSpeed(btn) {
-  btn.disabled = true; $('dDown').textContent = $('dUp').textContent = '…';
-  const r = await api().speed_test(); btn.disabled = false;
-  $('dDown').textContent = r.download_mbps != null ? r.download_mbps + ' Mbps' : 'erro';
-  $('dUp').textContent = r.upload_mbps != null ? r.upload_mbps + ' Mbps' : 'n/d';
-  if (r.error) toast(r.error);
-}
-let lastNet = null;
-async function deviceTick() {
-  if (!$('v-diag').classList.contains('on')) return;
-  const d = await api().device_monitor(); const now = Date.now();
-  let rate = '';
-  if (lastNet) { const dt = (now - lastNet.t) / 1000; rate = `↓ ${((d.net_recv - lastNet.r) * 8 / dt / 1e6).toFixed(1)} Mbps · ↑ ${((d.net_sent - lastNet.s) * 8 / dt / 1e6).toFixed(1)} Mbps`; }
-  lastNet = { t: now, r: d.net_recv, s: d.net_sent };
-  const bar = p => `<div class="meter"><div style="width:${Math.min(100, p)}%"></div></div>`;
-  $('dDev').innerHTML = `<div><div class="l muted">Processador (${d.cpu_count} núcleos)</div><b>${d.cpu.toFixed(0)}%</b>${bar(d.cpu)}</div>
-    <div><div class="l muted">Memória</div><b>${d.ram_used} / ${d.ram_total} GB</b>${bar(d.ram_percent)}</div>
-    <div><div class="l muted">Rede agora</div><b>${rate || 'medindo…'}</b></div>
-    <div><div class="l muted">Wi‑Fi</div><b>${d.wifi ? esc(d.wifi.ssid) + ' · sinal ' + d.wifi.signal + '%' : 'cabo / sem Wi‑Fi'}</b>${d.wifi ? bar(d.wifi.signal) : ''}</div>
-    <div><div class="l muted">Bateria</div><b>${d.battery ? d.battery.percent + '%' + (d.battery.plugged ? ' (na tomada)' : '') : 'sem bateria'}</b></div>
-    <div><div class="l muted">Mais memória</div><span class="muted">${d.top_memory.map(p => esc(p.name) + ' ' + p.mb + ' MB').join(' · ')}</span></div>`;
-}
+// ---- solicitar jogo --------------------------------------------------------------------
+async function monitorNet(btn) { btn.disabled = true; const list = await api().network_activity(); btn.disabled = false;
+  $('reqList').innerHTML = list.map(p => `<tr class="pick" data-n="${esc(p.name)}" onclick="pickProc(this.dataset.n)"><td>${esc(p.name)}</td><td>${p.udp}</td><td>${p.tcp}</td><td>${p.remotes}</td></tr>`).join(''); }
+function pickProc(n) { $('reqExe').value = n; if (!$('reqName').value) $('reqName').value = n.replace(/\.exe$/, ''); }
+async function addGame() { const r = await api().add_custom_game($('reqName').value, $('reqExe').value.split(',')); if (r !== 'ok') return toast(r);
+  closeModal('mReq'); toast('Jogo adicionado à biblioteca'); cfg = await api().get_config(); await loadLibrary(false); }
 
-// ---- Pedir jogo novo ------------------------------------------------------------
-async function monitorNet(btn) {
-  btn.disabled = true; const list = await api().network_activity(); btn.disabled = false;
-  $('reqList').innerHTML = list.map(p => `<tr class="pick" onclick="pickProc(this,'${esc(p.name)}')"><td>${esc(p.name)}<div class="muted" style="font-size:11px">${esc(p.exe)}</div></td>
-    <td>${p.udp}</td><td>${p.tcp}</td><td>${p.remotes}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">Nada encontrado.</td></tr>';
-}
-function pickProc(tr, name) { document.querySelectorAll('#reqList tr').forEach(r => r.classList.remove('sel')); tr.classList.add('sel');
-  $('reqExe').value = name; if (!$('reqName').value) $('reqName').value = name.replace(/\.exe$/, ''); }
-async function addGame() {
-  const r = await api().add_custom_game($('reqName').value, $('reqExe').value.split(','));
-  if (r !== 'ok') return toast(r);
-  toast('Jogo adicionado à biblioteca'); $('reqName').value = $('reqExe').value = '';
-  games = await api().list_games(); cfg = await api().get_config(); renderLibrary(); renderCustom();
-}
-function renderCustom() { const c = cfg.custom_games || [];
-  $('reqCustom').innerHTML = c.map(g => `<tr><td>${esc(g.name)}</td><td class="muted">${esc(g.exes.join(', '))}</td><td><button class="btn" onclick="removeGame('${g.id}')">Remover</button></td></tr>`).join('')
-  || '<tr><td class="muted">Nenhum.</td></tr>'; }
-async function removeGame(id) { await api().remove_custom_game(id); games = await api().list_games(); cfg = await api().get_config(); renderLibrary(); renderCustom(); }
-
-// ---- Configurações --------------------------------------------------------------
+// ---- configurações ----------------------------------------------------------------------
 function renderSettings() {
-  $('sKey').value = cfg.key || ''; $('sTwoHop').checked = cfg.two_hop; $('sDirect').checked = cfg.prefer_direct; $('sGain').value = cfg.min_gain_ms;
-  renderRelays();
+  document.querySelectorAll('[data-s]').forEach(b => { b.classList.toggle('on', !!(cfg.settings || {})[b.dataset.s]);
+    b.onclick = async () => { const k = b.dataset.s, on = !b.classList.contains('on');
+      if (k === 'startup') { const r = await api().set_startup(on); if (r !== 'ok') return toast(r); }
+      else await api().save_config({ settings: { [k]: on } });
+      cfg.settings[k] = on; b.classList.toggle('on', on); }; });
+  document.querySelectorAll('[data-c]').forEach(b => { b.classList.toggle('on', !!cfg[b.dataset.c]);
+    b.onclick = async () => { const on = !b.classList.contains('on'); cfg[b.dataset.c] = on; b.classList.toggle('on', on); await api().save_config({ [b.dataset.c]: on }); }; });
+  renderOwn();
 }
-function renderRelays() {
-  $('sRelays').innerHTML = cfg.relays.map((r, i) => `<tr><td>${esc(r.name)}</td><td>${esc(r.region || '—')}</td><td>${esc(r.host)}</td><td>${r.port}</td>
-    <td><button class="btn" onclick="cfg.relays.splice(${i},1);renderRelays()">Remover</button></td></tr>`).join('')
-    || '<tr><td colspan="5" class="muted">Nenhum servidor ainda. Veja o README para instalar um numa VPS.</td></tr>';
-}
-function addRelay() {
-  const name = $('rName').value.trim(), host = $('rHost').value.trim(), region = $('rRegion').value.trim(), port = parseInt($('rPort').value || '7000');
-  if (!name || !host) return toast('Preencha nome e endereço');
-  cfg.relays.push({ name, host, port, region }); ['rName', 'rHost', 'rRegion', 'rPort'].forEach(i => $(i).value = ''); renderRelays();
-}
-async function genKey() { $('sKey').value = await api().keygen(); $('sKey').type = 'text'; toast('Use a mesma chave em todos os seus servidores'); }
-async function saveSettings() {
-  const upd = { key: $('sKey').value.trim(), relays: cfg.relays, two_hop: $('sTwoHop').checked, prefer_direct: $('sDirect').checked, min_gain_ms: parseFloat($('sGain').value || '3') };
-  Object.assign(cfg, upd); toast(await api().save_config(upd, true));
-}
+function renderOwn() { $('ownRelays').innerHTML = (cfg.relays || []).map((r, i) => `<tr><td>${esc(r.name)}</td><td>${esc(r.region || '')}</td><td>${esc(r.host)}</td><td>${r.port}</td><td><button class="btn" onclick="cfg.relays.splice(${i},1);renderOwn()">Remover</button></td></tr>`).join('')
+  || '<tr><td colspan="5" class="muted">Nenhum (usando os servidores do NoPingeyson).</td></tr>'; $('ownKey').value = cfg.key || ''; }
+function addRelay() { const name = $('rName').value.trim(), host = $('rHost').value.trim(); if (!name || !host) return toast('Preencha nome e endereço');
+  (cfg.relays = cfg.relays || []).push({ name, host, region: $('rRegion').value.trim(), port: parseInt($('rPort').value || '7000') }); ['rName', 'rHost', 'rRegion', 'rPort'].forEach(i => $(i).value = ''); renderOwn(); }
+async function saveRelays() { toast(await api().save_config({ relays: cfg.relays || [], key: $('ownKey').value.trim() }, true)); cfg = await api().get_config(); renderSettings(); }
 
 window.addEventListener('pywebviewready', async () => {
-  cfg = await api().get_config(); games = await api().list_games();
-  renderLibrary(); renderAuto(); renderShaper(); renderSettings(); refresh();
-  setInterval(refresh, 1000); setInterval(deviceTick, 2000);
+  cfg = await api().get_config();
+  renderSettings(); renderShaper(); renderCats(); await refresh();
+  loadLibrary(false);
+  setInterval(refresh, 1000); setInterval(liveTick, 1500); liveTick();
+  setInterval(() => { if ($('p-boost').classList.contains('on')) ramGauge(); }, 4000);
 });
+document.addEventListener('click', e => { if (!e.target.closest('#bell') && !e.target.closest('#bellBtn')) $('bell').classList.remove('on'); });
 </script>
 </body>
 </html>

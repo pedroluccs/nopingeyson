@@ -54,10 +54,49 @@ CATALOG = [
 ]
 
 
+# apps que não são jogos, mas que o usuário pode querer otimizar (como no ExitLag)
+CATALOG += [
+    {"id": "discord", "name": "Discord", "genre": "Voz", "category": "Voz", "exes": ["discord.exe"],
+     "paths": [r"%LOCALAPPDATA%\Discord\app-*\Discord.exe"]},
+    {"id": "teamspeak", "name": "TeamSpeak", "genre": "Voz", "category": "Voz", "exes": ["ts3client_win64.exe", "teamspeak.exe"],
+     "paths": [r"%ProgramFiles%\TeamSpeak 3 Client\ts3client_win64.exe", r"%LOCALAPPDATA%\Programs\TeamSpeak\TeamSpeak.exe"]},
+    {"id": "chrome", "name": "Google Chrome", "genre": "Navegador", "category": "Navegador", "exes": ["chrome.exe"],
+     "paths": [r"%ProgramFiles%\Google\Chrome\Application\chrome.exe", r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"]},
+    {"id": "edge", "name": "Microsoft Edge", "genre": "Navegador", "category": "Navegador", "exes": ["msedge.exe"],
+     "paths": [r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"]},
+    {"id": "firefox", "name": "Firefox", "genre": "Navegador", "category": "Navegador", "exes": ["firefox.exe"],
+     "paths": [r"%ProgramFiles%\Mozilla Firefox\firefox.exe"]},
+    {"id": "opera", "name": "Opera GX", "genre": "Navegador", "category": "Navegador", "exes": ["opera.exe"],
+     "paths": [r"%LOCALAPPDATA%\Programs\Opera GX\opera.exe"]},
+    {"id": "steam", "name": "Steam", "genre": "Inicializador", "category": "Inicializador", "exes": ["steam.exe", "steamwebhelper.exe"],
+     "paths": [r"%ProgramFiles(x86)%\Steam\steam.exe"]},
+    {"id": "epic", "name": "Epic Games Launcher", "genre": "Inicializador", "category": "Inicializador", "exes": ["epicgameslauncher.exe"],
+     "paths": [r"%ProgramFiles(x86)%\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe"]},
+    {"id": "riotclient", "name": "Riot Client", "genre": "Inicializador", "category": "Inicializador", "exes": ["riotclientservices.exe", "riot client.exe"],
+     "paths": [r"C:\Riot Games\Riot Client\RiotClientServices.exe"]},
+    {"id": "battlenet", "name": "Battle.net", "genre": "Inicializador", "category": "Inicializador", "exes": ["battle.net.exe"],
+     "paths": [r"%ProgramFiles(x86)%\Battle.net\Battle.net.exe"]},
+    {"id": "obs", "name": "OBS Studio", "genre": "Transmissão", "category": "Transmissão", "exes": ["obs64.exe"],
+     "paths": [r"%ProgramFiles%\obs-studio\bin\64bit\obs64.exe"]},
+    {"id": "streamlabs", "name": "Streamlabs", "genre": "Transmissão", "category": "Transmissão", "exes": ["streamlabs obs.exe"],
+     "paths": [r"%ProgramFiles%\Streamlabs OBS\Streamlabs OBS.exe"]},
+    {"id": "bluestacks", "name": "BlueStacks", "genre": "Emulador", "category": "Emulador", "exes": ["hd-player.exe"],
+     "paths": [r"%ProgramFiles%\BlueStacks_nxt\HD-Player.exe"]},
+    {"id": "ldplayer", "name": "LDPlayer", "genre": "Emulador", "category": "Emulador", "exes": ["dnplayer.exe"],
+     "paths": [r"C:\LDPlayer\LDPlayer9\dnplayer.exe"]},
+]
+CATALOG = [g for g in CATALOG if g["id"] != "freefire"]   # o emulador já cobre o Free Fire
+for _g in CATALOG:
+    _g.setdefault("category", "Jogos")
+
+
 def all_games(cfg: dict) -> list[dict]:
+    """Catálogo + jogos detectados no PC + jogos pedidos pelo usuário."""
     custom = cfg.get("custom_games") or []
-    ids = {g["id"] for g in custom}
-    return [g for g in CATALOG if g["id"] not in ids] + [dict(g, custom=True) for g in custom]
+    detected = cfg.get("_detected") or []
+    ids = {g["id"] for g in custom} | {g["id"] for g in detected}
+    return ([g for g in CATALOG if g["id"] not in ids] + list(detected)
+            + [dict(g, custom=True) for g in custom if g["id"] not in {d["id"] for d in detected}])
 
 
 def by_exe(cfg: dict) -> dict[str, dict]:

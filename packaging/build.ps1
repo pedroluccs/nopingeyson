@@ -14,6 +14,7 @@ python -m PyInstaller --noconfirm --clean `
   --name NoPingeyson --windowed --uac-admin `
   --icon "$root\packaging\nopingeyson.ico" `
   --add-data "$root\nopingeyson\ui;nopingeyson\ui" `
+  --add-data "$root\nopingeyson\servers.json;nopingeyson" `
   --collect-all pydivert --collect-all webview `
   --distpath build\dist --workpath build\work --specpath build `
   packaging\launcher.py
