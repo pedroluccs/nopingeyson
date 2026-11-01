@@ -97,6 +97,31 @@ o usuário final não configurar nada, o dono do projeto coloca os servidores em
 Sem servidores, o NoPingeyson funciona normalmente (PC Boost, limitador,
 analisador, DNS, RAM), mas o ping do jogo não muda: o jogo segue pela rota normal.
 
+### Servidor grátis na Oracle Cloud (tenta até ter vaga)
+
+1. Crie uma conta na Oracle Cloud escolhendo **São Paulo** como região principal
+   (ela é definitiva; o plano Always Free só vale na região principal).
+2. No console: ícone do perfil → **Meu perfil** → **Chaves de API** → **Adicionar
+   chave de API** → **Gerar par de chaves** → baixe a chave privada → **Adicionar**.
+   Copie o texto da "Visualização do arquivo de configuração" para
+   `C:\Users\SEU_USUARIO\.oci\config` e troque `key_file=` pelo caminho da chave baixada.
+3. Na pasta do projeto:
+
+```bash
+pip install oci
+```
+
+```bash
+python -m nopingeyson oracle
+```
+
+O comando cria a rede, libera a porta UDP 7000 e tenta criar a VM gratuita
+(Ampere A1 ou AMD Micro) em todas as zonas, repetindo a cada 60 s até a Oracle
+liberar vaga. A VM se instala sozinha; quando o relay responde, o servidor é
+salvo na configuração e o comando mostra o JSON para o segredo
+`NOPINGEYSON_SERVERS` do GitHub (Settings → Secrets and variables → Actions),
+que embute o servidor nos próximos instaladores.
+
 ## Anti-cheat: o que esperar
 
 O NoPingeyson foi feito para **não mexer no jogo**: não lê nem escreve na memória

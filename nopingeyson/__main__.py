@@ -6,6 +6,7 @@
     python -m nopingeyson keygen          gera uma chave nova para relays e cliente
     python -m nopingeyson boost apply power timer ...   |   boost restore   |   boost status
     python -m nopingeyson relay --port 7000 --key ...    roda o servidor relay
+    python -m nopingeyson oracle                          cria o relay grátis na Oracle (tenta até ter vaga)
 """
 
 from __future__ import annotations
@@ -50,6 +51,9 @@ def main(argv=None):
 
     if argv is None:
         argv = sys.argv[1:]
+    if argv[:1] == ["oracle"]:
+        from .oracle import main as oracle_main
+        return oracle_main(argv[1:])
     if argv[:1] == ["relay"]:
         from .relay import main as relay_main
         return relay_main(argv[1:])
