@@ -1,3 +1,4 @@
+# Requer: pip install -r requirements.txt pyinstaller pillow  +  Inno Setup 6
 # Gera build\dist\NoPingeyson\NoPingeyson.exe e o instalador em build\installer.
 #   powershell -ExecutionPolicy Bypass -File packaging\build.ps1
 $ErrorActionPreference = "Stop"
