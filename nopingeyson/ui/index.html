@@ -18,8 +18,7 @@
   aside { width: 220px; background: var(--side); border-right: 1px solid var(--line);
           display: flex; flex-direction: column; padding: 18px 12px; }
   .logo { display: flex; align-items: center; gap: 10px; padding: 0 8px 22px; }
-  .logo-mark { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-weight: 800;
-               background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #0b0d14; }
+  .logo-mark { width: 34px; height: 34px; border-radius: 10px; object-fit: cover; }
   .logo b { font-size: 17px; letter-spacing: .3px; } .logo b span { color: var(--accent2); }
   .navlabel { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 14px 10px 6px; }
   aside nav button { display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: 0;
@@ -98,7 +97,7 @@
 </head>
 <body>
 <aside>
-  <div class="logo"><div class="logo-mark">N</div><b>NoPing<span>eyson</span></b></div>
+  <div class="logo"><img class="logo-mark" src="logo.png" alt=""><b>NoPing<span>eyson</span></b></div>
   <nav>
     <button data-view="library" class="on"><span class="ico">▦</span>Jogos</button>
     <button data-view="routes"><span class="ico">⇄</span>Minhas rotas</button>

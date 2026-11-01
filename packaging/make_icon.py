@@ -55,7 +55,32 @@ def png(size: int) -> bytes:
     return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr) + chunk(b"IDAT", raw) + chunk(b"IEND", b"")
 
 
+SOURCE = os.path.join(HERE, "icon_source.png")
+# recorte quadrado (esquerda, topo, lado) do rosto na imagem de origem
+CROP = (72, 0, 220)
+UI_LOGO = os.path.join(HERE, "..", "nopingeyson", "ui", "logo.png")
+
+
+def from_source():
+    """Ícone a partir de packaging/icon_source.png (precisa do Pillow)."""
+    from PIL import Image, ImageDraw
+    img = Image.open(SOURCE).convert("RGBA")
+    x, y, side = CROP
+    side = min(side, img.width - x, img.height - y)
+    img = img.crop((x, y, x + side, y + side)).resize((256, 256), Image.LANCZOS)
+    mask = Image.new("L", (256, 256), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, 255, 255), radius=56, fill=255)
+    img.putalpha(mask)
+    img.save(os.path.join(HERE, "nopingeyson.ico"),
+             sizes=[(s, s) for s in (16, 24, 32, 48, 64, 128, 256)])
+    img.save(os.path.join(HERE, "nopingeyson.png"))
+    img.resize((96, 96), Image.LANCZOS).save(UI_LOGO)
+    print("ícone gerado a partir de", SOURCE)
+
+
 def main():
+    if os.path.exists(SOURCE):
+        return from_source()
     sizes = [16, 24, 32, 48, 64, 128, 256]
     images = [png(s) for s in sizes]
     header = struct.pack("<HHH", 0, 1, len(sizes))
