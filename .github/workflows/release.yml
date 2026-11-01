@@ -1,0 +1,49 @@
+# Gera o NoPingeyson.exe e o instalador e publica na aba Releases quando uma
+# tag v* é enviada (ex.: git tag v0.2.0 && git push origin v0.2.0).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Dependências
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt pyinstaller
+
+      - name: Testes
+        run: python -m unittest discover -s tests -v
+
+      - name: Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+
+      - name: Build (.exe + instalador)
+        shell: pwsh
+        run: ./packaging/build.ps1
+
+      - name: Publicar release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: NoPingeyson ${{ github.ref_name }}
+          files: build/installer/*.exe
+          body: |
+            Baixe **NoPingeyson-Setup-*-x64.exe**, rode e siga o instalador.
+            O NoPingeyson pede permissão de Administrador ao abrir (necessário para desviar o tráfego dos jogos).
+            Para as rotas funcionarem você precisa de servidores (relays) próprios; veja o README.

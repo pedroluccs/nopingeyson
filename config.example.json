@@ -1,0 +1,20 @@
+{
+  "key": "COLE_AQUI_A_SAIDA_DE_python -m nopingeyson keygen",
+  "relays": [
+    {"name": "SP-1", "region": "São Paulo", "host": "203.0.113.10", "port": 7000},
+    {"name": "SP-2", "region": "São Paulo", "host": "203.0.113.20", "port": 7000},
+    {"name": "MIA-1", "region": "Miami", "host": "198.51.100.30", "port": 7000}
+  ],
+  "game_settings": {
+    "cs2": {"region": "auto", "mode": "auto", "exit": null, "connections": 2},
+    "valorant": {"region": "São Paulo", "mode": "manual", "exit": "SP-1", "connections": 3}
+  },
+  "active_games": [],
+  "custom_games": [],
+  "two_hop": true,
+  "prefer_direct": true,
+  "min_gain_ms": 3,
+  "auto_boost": ["timer", "priority"],
+  "multi_internet": {"enabled": false, "interfaces": ["Ethernet", "Wi-Fi"]},
+  "shaper": {"enabled": false, "download_kbps": 50000, "upload_kbps": 10000, "exceptions": ["discord.exe"]}
+}
