@@ -15,7 +15,7 @@ command -v python3 >/dev/null || { apt-get update && apt-get install -y python3;
 command -v ping >/dev/null || apt-get install -y iputils-ping
 
 mkdir -p "$DIR"
-cp -r "$(dirname "$0")/nopingeyson" "$DIR/" 2>/dev/null || cp -r ./nopingeyson "$DIR/"
+cp -r "$(dirname "$0")/../nopingeyson" "$DIR/" 2>/dev/null || cp -r "$(dirname "$0")/nopingeyson" "$DIR/" 2>/dev/null || cp -r ./nopingeyson "$DIR/"
 id nopingeyson >/dev/null 2>&1 || useradd --system --no-create-home --shell /usr/sbin/nologin nopingeyson
 
 cat > /etc/nopingeyson-relay.env <<EOF
@@ -52,6 +52,11 @@ grep -q nopingeyson /etc/sysctl.conf || printf '# nopingeyson\nnet.core.rmem_max
 
 # libera a porta no firewall, se houver ufw
 if command -v ufw >/dev/null && ufw status | grep -q active; then ufw allow "$PORT"/udp; fi
+# imagens Ubuntu da Oracle Cloud vêm com iptables bloqueando tudo: abre a porta e salva
+if command -v iptables >/dev/null; then
+  iptables -C INPUT -p udp --dport "$PORT" -j ACCEPT 2>/dev/null || iptables -I INPUT -p udp --dport "$PORT" -j ACCEPT
+  if command -v netfilter-persistent >/dev/null; then netfilter-persistent save >/dev/null 2>&1 || true; fi
+fi
 
 systemctl daemon-reload
 systemctl enable --now nopingeyson-relay

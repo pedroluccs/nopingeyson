@@ -39,6 +39,14 @@ jobs:
         run: |
           if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
 
+      # servidores embutidos: o segredo NOPINGEYSON_SERVERS (JSON) vira nopingeyson/servers.json
+      - name: Servidores embutidos
+        shell: pwsh
+        env:
+          SERVERS: ${{ secrets.NOPINGEYSON_SERVERS }}
+        run: |
+          if ($env:SERVERS) { Set-Content -Path nopingeyson/servers.json -Value $env:SERVERS -Encoding utf8NoBOM; "servidores embutidos" } else { "sem servidores embutidos" }
+
       - name: Build (.exe + instalador)
         shell: pwsh
         run: ./packaging/build.ps1
