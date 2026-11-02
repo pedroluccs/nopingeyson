@@ -22,45 +22,48 @@ BOOST_PRESETS = {
 
 
 class Api:
+    # Atributos com "_" na frente: o pywebview expõe ao JavaScript tudo o que for
+    # público e percorre objetos aninhados. Expor a janela (window.native...) faz ele
+    # mexer em controles do WebView2 fora da thread da interface e a janela trava.
     def __init__(self, cfg: dict):
-        self.engine = Engine(cfg)
-        self.window = None
+        self._engine = Engine(cfg)
+        self._window = None
 
     # -- estado e configuração -------------------------------------------------
     def get_state(self):
-        snap = self.engine.snapshot()
+        snap = self._engine.snapshot()
         snap["admin"] = is_admin()
         snap["version"] = __version__
         return snap
 
     def get_config(self):
-        cfg = {k: v for k, v in self.engine.cfg.items() if not k.startswith("_")}
-        servers, _ = relays_of(self.engine.cfg)
+        cfg = {k: v for k, v in self._engine.cfg.items() if not k.startswith("_")}
+        servers, _ = relays_of(self._engine.cfg)
         cfg["servers"] = [{k: r.get(k) for k in ("name", "region")} for r in servers]
-        cfg["builtin_servers"] = bool(self.engine.cfg.get("_builtin"))
+        cfg["builtin_servers"] = bool(self._engine.cfg.get("_builtin"))
         return cfg
 
     def save_config(self, new: dict, restart=False):
-        cfg = self.engine.cfg
+        cfg = self._engine.cfg
         for k, v in new.items():
             if k == "settings":
                 cfg["settings"] = dict(cfg.get("settings") or {}, **v)
             elif not k.startswith("_") and k not in ("servers", "builtin_servers"):
                 cfg[k] = v
         save_config(cfg)
-        if restart and self.engine.running:
-            res = self.engine.restart()
+        if restart and self._engine.running:
+            res = self._engine.restart()
             return "Salvo" if res == "ok" else res
         return "Salvo"
 
     def set_enabled(self, on):
-        self.engine.cfg["enabled"] = bool(on)
-        save_config(self.engine.cfg)
+        self._engine.cfg["enabled"] = bool(on)
+        save_config(self._engine.cfg)
         if not on:
-            self.engine.stop()
+            self._engine.stop()
             return "ok"
-        if self.engine.cfg["active_games"] and not self.engine.running:
-            return self.engine.start()
+        if self._engine.cfg["active_games"] and not self._engine.running:
+            return self._engine.start()
         return "ok"
 
     def keygen(self):
@@ -69,10 +72,10 @@ class Api:
     # -- biblioteca e conexões ------------------------------------------------------
     def library(self, rescan=False):
         from .games import all_games
-        self.engine.library(bool(rescan))
-        installed = {g["id"] for g in self.engine.cfg.get("_detected") or []}
+        self._engine.library(bool(rescan))
+        installed = {g["id"] for g in self._engine.cfg.get("_detected") or []}
         out = []
-        for g in all_games(self.engine.cfg):
+        for g in all_games(self._engine.cfg):
             out.append({"id": g["id"], "name": g["name"], "category": g.get("category", "Jogos"),
                         "exes": g["exes"], "installed": g["id"] in installed or g.get("custom", False),
                         "source": g.get("source", ""), "custom": g.get("custom", False)})
@@ -81,7 +84,7 @@ class Api:
     def icons(self, ids):
         """Ícones (data URL) dos jogos pedidos; capas da Steam quando houver."""
         from . import detect
-        lib = {g["id"]: g for g in self.engine.cfg.get("_detected") or []}
+        lib = {g["id"]: g for g in self._engine.cfg.get("_detected") or []}
         out = {}
         for gid in ids:
             g = lib.get(gid)
@@ -97,30 +100,30 @@ class Api:
         return out
 
     def game_settings(self, game_id):
-        return self.engine.game_settings(game_id)
+        return self._engine.game_settings(game_id)
 
     def apply_routes(self, game_id, settings=None):
-        if not self.engine.cfg.get("enabled", True):
-            self.engine.cfg["enabled"] = True
-        return self.engine.apply_routes(game_id, settings)
+        if not self._engine.cfg.get("enabled", True):
+            self._engine.cfg["enabled"] = True
+        return self._engine.apply_routes(game_id, settings)
 
     def stop_routes(self, game_id):
-        return self.engine.stop_routes(game_id)
+        return self._engine.stop_routes(game_id)
 
     def add_connection(self, game_id):
         """Card "+" da tela Conexões: adiciona o jogo já ligado."""
-        return self.apply_routes(game_id, {"connections": 2 if self.engine.cfg["settings"].get("dual_routes") else 1})
+        return self.apply_routes(game_id, {"connections": 2 if self._engine.cfg["settings"].get("dual_routes") else 1})
 
     def remove_connection(self, game_id):
-        self.engine.stop_routes(game_id)
-        conns = self.engine.cfg.setdefault("connections", [])
+        self._engine.stop_routes(game_id)
+        conns = self._engine.cfg.setdefault("connections", [])
         if game_id in conns:
             conns.remove(game_id)
-            save_config(self.engine.cfg)
+            save_config(self._engine.cfg)
         return "ok"
 
     def launch_game(self, game_id):
-        g = next((g for g in self.engine.cfg.get("_detected") or [] if g["id"] == game_id), None)
+        g = next((g for g in self._engine.cfg.get("_detected") or [] if g["id"] == game_id), None)
         if not g or not g.get("paths"):
             return "Não sei como abrir esse jogo"
         if g.get("appid"):
@@ -139,41 +142,41 @@ class Api:
         if not name or not exes:
             return "Informe o nome e pelo menos um executável"
         gid = "custom-" + (re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-") or secrets.token_hex(3))
-        games = [g for g in self.engine.cfg.setdefault("custom_games", []) if g["id"] != gid]
+        games = [g for g in self._engine.cfg.setdefault("custom_games", []) if g["id"] != gid]
         games.append({"id": gid, "name": name, "category": "Jogos", "exes": exes})
-        self.engine.cfg["custom_games"] = games
-        save_config(self.engine.cfg)
+        self._engine.cfg["custom_games"] = games
+        save_config(self._engine.cfg)
         return "ok"
 
     def remove_custom_game(self, game_id):
-        self.engine.stop_routes(game_id)
-        self.engine.cfg["custom_games"] = [g for g in self.engine.cfg.get("custom_games", [])
+        self._engine.stop_routes(game_id)
+        self._engine.cfg["custom_games"] = [g for g in self._engine.cfg.get("custom_games", [])
                                            if g["id"] != game_id]
-        save_config(self.engine.cfg)
+        save_config(self._engine.cfg)
         return "ok"
 
     # -- PC Boost --------------------------------------------------------------------
     def boost_status(self):
-        return self.engine.booster.status()
+        return self._engine.booster.status()
 
     def boost_preset(self, name):
-        self.engine.booster.restore()
+        self._engine.booster.restore()
         if name == "padrao":
             return {"preset": name, "result": "restaurado"}
-        return {"preset": name, "result": self.engine.booster.apply(BOOST_PRESETS[name])}
+        return {"preset": name, "result": self._engine.booster.apply(BOOST_PRESETS[name])}
 
     def boost_toggle(self, name, on):
         if on:
-            return self.engine.booster.apply([name]).get(name)
-        saved = self.engine.booster.backup.pop(name, None)
+            return self._engine.booster.apply([name]).get(name)
+        saved = self._engine.booster.backup.pop(name, None)
         if saved is not None:
-            getattr(self.engine.booster, f"_restore_{name}")(saved)
-            self.engine.booster._save()
+            getattr(self._engine.booster, f"_restore_{name}")(saved)
+            self._engine.booster._save()
         return "ok"
 
     def clean_ram(self):
-        protect = {exe for g in self.engine.cfg.get("_detected") or [] for exe in g["exes"]
-                   if g["id"] in self.engine.running_ids}
+        protect = {exe for g in self._engine.cfg.get("_detected") or [] for exe in g["exes"]
+                   if g["id"] in self._engine.running_ids}
         return tools.clean_ram(protect)
 
     def memory(self):
@@ -220,25 +223,25 @@ class Api:
 
     # -- Limitador / Multi Internet ---------------------------------------------------
     def shaper_save(self, settings):
-        self.engine.cfg["shaper"] = settings
-        save_config(self.engine.cfg)
+        self._engine.cfg["shaper"] = settings
+        save_config(self._engine.cfg)
         if settings.get("enabled"):
-            if not self.engine.running:
-                self.engine.start()
-            return self.engine.start_shaper()
-        self.engine.stop_shaper()
+            if not self._engine.running:
+                self._engine.start()
+            return self._engine.start_shaper()
+        self._engine.stop_shaper()
         return "ok"
 
     # -- configurações do app ---------------------------------------------------------
     def set_startup(self, on):
         res = tools.set_startup(bool(on))
         if res == "ok":
-            self.engine.cfg["settings"]["startup"] = bool(on)
-            save_config(self.engine.cfg)
+            self._engine.cfg["settings"]["startup"] = bool(on)
+            save_config(self._engine.cfg)
         return res
 
     def open_logs(self):
-        os.startfile(os.path.dirname(self.engine.log_path))
+        os.startfile(os.path.dirname(self._engine.log_path))
         return "ok"
 
     def relaunch_admin(self):
@@ -247,18 +250,18 @@ class Api:
         os._exit(0)
 
     def minimize(self):
-        if self.window:
-            self.window.minimize()
+        if self._window:
+            self._window.minimize()
 
     def close(self):
-        if self.window:
-            if (self.engine.cfg.get("settings") or {}).get("tray"):
-                self.window.hide()
+        if self._window:
+            if (self._engine.cfg.get("settings") or {}).get("tray"):
+                self._window.hide()
             else:
                 self.quit()
 
     def quit(self):
-        self.engine.stop()
+        self._engine.stop()
         os._exit(0)
 
 
@@ -271,7 +274,7 @@ def _tray(api: Api):
     logo = os.path.join(os.path.dirname(__file__), "ui", "logo.png")
     image = Image.open(logo) if os.path.exists(logo) else Image.new("RGB", (64, 64), "#7c5cff")
     menu = pystray.Menu(
-        pystray.MenuItem("Abrir NoPingeyson", lambda: api.window.show(), default=True),
+        pystray.MenuItem("Abrir NoPingeyson", lambda: api._window.show(), default=True),
         pystray.MenuItem("Sair", lambda icon: (icon.stop(), api.quit())),
     )
     pystray.Icon("NoPingeyson", image, "NoPingeyson", menu).run()
@@ -284,20 +287,20 @@ def run_gui(cfg: dict, minimized: bool = False):
         print("pywebview não está instalado. Rode: pip install -r requirements.txt")
         sys.exit(1)
     api = Api(cfg)
-    api.window = webview.create_window("NoPingeyson", UI, js_api=api, width=1220, height=780,
+    api._window = webview.create_window("NoPingeyson", UI, js_api=api, width=1220, height=780,
                                        min_size=(1040, 660), background_color="#0a0b10",
                                        frameless=True, easy_drag=False, hidden=minimized)
 
     def on_closing():
-        if (api.engine.cfg.get("settings") or {}).get("tray"):
-            api.window.hide()
+        if (api._engine.cfg.get("settings") or {}).get("tray"):
+            api._window.hide()
             return False
         return True
-    api.window.events.closing += on_closing
+    api._window.events.closing += on_closing
     threading.Thread(target=_tray, args=(api,), daemon=True).start()
     if cfg.get("active_games") and cfg.get("enabled", True):
-        threading.Thread(target=api.engine.start, daemon=True).start()
+        threading.Thread(target=api._engine.start, daemon=True).start()
     try:
         webview.start()
     finally:
-        api.engine.stop()
+        api._engine.stop()
