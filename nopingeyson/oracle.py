@@ -157,7 +157,18 @@ def create_relay(key_hex: str, port: int = 7000, interval: int = 60, max_hours: 
     ads = [a.name for a in identity.list_availability_domains(compartment).data]
     _say(cb, f"Região {region}, zonas: {', '.join(ads)}")
 
-    inst = _existing(compute, compartment)
+    # conta nova: a Oracle libera o serviço de máquinas alguns minutos (às vezes
+    # horas) depois do cadastro e, até lá, responde 401. Esperamos em vez de falhar.
+    while True:
+        try:
+            inst = _existing(compute, compartment)
+            break
+        except oci.exceptions.ServiceError as e:
+            if e.status != 401:
+                raise
+            _say(cb, "A Oracle ainda está ativando a sua conta (serviço de máquinas). "
+                     "Tentando de novo em 2 min…")
+            time.sleep(120)
     if inst:
         _say(cb, f"Já existe uma VM {NAME} ({inst.lifecycle_state}); reaproveitando.")
     else:
