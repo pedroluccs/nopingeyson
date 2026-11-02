@@ -238,7 +238,12 @@ class Engine:
                         self.apply_routes(gid)
                         self.notify(f"{names[gid]} aberto: otimização ligada automaticamente", "good")
                     elif gid in self.cfg["active_games"]:
-                        self.notify(f"{names[gid]} aberto: otimização ativa", "good")
+                        if self.running and not self.local_only:
+                            self.notify(f"{names[gid]} aberto: otimização ativa", "good")
+                        elif self.error:
+                            self.notify(f"{names[gid]} aberto, mas a otimização não está rodando: {self.error}", "warn")
+                        else:
+                            self.notify(f"{names[gid]} aberto: sem servidores, segue pela rota normal", "warn")
             except Exception as e:
                 log.debug("watcher: %s", e)
 
